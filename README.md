@@ -12,14 +12,14 @@ Lấy IP_may_trinh bằng cách chạy lệnh ipconfig trong CMD
 ## 3. Backend
    ### Cài đặt thư viện backend:
    ``` cd backend ```  
-      ``` npm install ```  
+      ``` npm install express```  
    ### Chạy server backend:
    ``` node server.js ```  
 
    ## 4. Mobile App
    ### Cài đặt thư viện app:
    ``` cd ../my-app ```  
-      ``` npm install ```  
+      ``` npm install expo ```  
    ### Chạy ứng dụng:
    ``` npx expo start ```  
 
