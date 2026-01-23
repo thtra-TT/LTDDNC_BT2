@@ -2,9 +2,11 @@
 ## 1. Clone dự án:
    ``` git clone ```  
    ## 2. Cấu hình API:
-   Trong file app/services/api.js
+   Trong file app/services/api.js  
+   
 Sửa lại ```const YOUR_COMPUTER_IP = "IP_may_tinh";
-baseURL: `http://${YOUR_COMPUTER_IP}:3000/api` ```
+baseURL: `http://${YOUR_COMPUTER_IP}:3000/api` ```  
+
 Lấy IP_may_trinh bằng cách chạy lệnh ipconfig trong CMD
 
 ## 3. Backend
