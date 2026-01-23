@@ -1,6 +1,6 @@
 ## Cách chạy dự án:
 ## 1. Clone dự án:
-   ``` git clone ```  
+   ``` git clone https://github.com/thtra-TT/LTDDNC_BT2.git```  
    ## 2. Cấu hình API:
    Trong file app/services/api.js  
    
@@ -11,15 +11,15 @@ Lấy IP_may_trinh bằng cách chạy lệnh ipconfig trong CMD
 
 ## 3. Backend
    ### Cài đặt thư viện backend:
-   ``` cd backend ```
-   ``` npm install ```  
+   ``` cd backend ```  
+      ``` npm install ```  
    ### Chạy server backend:
    ``` node server.js ```  
 
    ## 4. Mobile App
    ### Cài đặt thư viện app:
-   ``` cd ../my-app ```
-   ``` npm install ```  
+   ``` cd ../my-app ```  
+      ``` npm install ```  
    ### Chạy ứng dụng:
    ``` npx expo start ```  
 
