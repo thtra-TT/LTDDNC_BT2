@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const { sendOTPEmail } = require('../config/email'); // 👈 Import hàm gửi email
+const { generateToken } = require('../config/jwt');
 
 const router = express.Router();
 
@@ -31,28 +32,99 @@ function isValidPhone(phone) {
   return regex.test(phone);
 }
 
-/* REGISTER */
+/* ========================================
+   REGISTER - SEND OTP
+   ======================================== */
+router.post('/register/send-otp', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email là bắt buộc' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: 'Email không hợp lệ' });
+  }
+
+  User.findByEmail(email, async (err, user) => {
+    if (err) {
+      console.log('DB error:', err);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+
+    if (user) {
+      return res.status(400).json({ message: 'Email đã được đăng ký' });
+    }
+
+    const otp = generateOTP();
+    const expiryTime = Date.now() + 10 * 60 * 1000;
+
+    otpStore[`register_${email}`] = { otp, expiryTime };
+
+    const result = await sendOTPEmail(email, otp);
+    if (!result.success) {
+      return res.status(500).json({ message: 'Không gửi được email OTP' });
+    }
+
+    console.log(`📩 OTP đăng ký gửi tới ${email}: ${otp}`);
+
+    res.json({ message: 'OTP đã được gửi tới email' });
+  });
+});
+
+/* ========================================
+   REGISTER - VERIFY OTP & CREATE USER
+   ======================================== */
 router.post('/register', async (req, res) => {
-  console.log('BODY:', req.body);
-  const { username, email, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
+  const { username, email, phone, password, otp } = req.body;
+
+  const identifier = email || phone;
+
+  if (!username || !password || !otp || !identifier) {
+    return res.status(400).json({ message: 'Thiếu thông tin đăng ký' });
+  }
+
+  const otpKey = `register_${identifier}`;
+  const otpData = otpStore[otpKey];
+
+  if (!otpData) {
+    return res.status(400).json({ message: 'OTP không tồn tại hoặc đã hết hạn' });
+  }
+
+  if (Date.now() > otpData.expiryTime) {
+    delete otpStore[otpKey];
+    return res.status(400).json({ message: 'OTP đã hết hạn' });
+  }
+
+  if (otp !== otpData.otp) {
+    return res.status(400).json({ message: 'OTP không chính xác' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   User.create(
-    { username, email, password: hash },
+    {
+      username,
+      email: email || null,
+      phone: phone || null,
+      password: hashedPassword,
+    },
     (err) => {
-      if (err)
+      if (err) {
         return res.status(500).json({ message: 'Register failed' });
+      }
 
-      res.json({ message: 'Register success' });
+      delete otpStore[otpKey];
+
+      console.log(`✅ Đăng ký thành công: ${identifier}`);
+
+      res.json({ message: 'Đăng ký thành công' });
     }
   );
 });
 
-/* LOGIN */
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
-
-  console.log('LOGIN BODY:', req.body);
 
   User.findByEmail(email, async (err, user) => {
     if (err) {
@@ -68,8 +140,12 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ message: 'Wrong password' });
     }
 
-    return res.json({
+    // ✅ TẠO JWT
+    const token = generateToken(user);
+
+    res.json({
       message: 'Login success',
+      token, // 👈 QUAN TRỌNG
       user: {
         id: user.id,
         username: user.username,
