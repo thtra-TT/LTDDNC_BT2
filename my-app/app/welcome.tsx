@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
-export default function Welcome() {
-  const { username, email } = useLocalSearchParams();
+export default function WelcomeScreen() {
+  const { username, email } = useLocalSearchParams<{ username: string; email: string }>();
 
   const handleLogout = () => {
     router.replace('/');
@@ -11,20 +11,16 @@ export default function Welcome() {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        
-        {/* Ảnh Hello Kitty */}
-        <Image
-          source={{ uri: 'https://i.pinimg.com/474x/52/3a/4f/523a4f9b649b6138cd9520fe437e433a.jpg' }} 
-          style={styles.kitty}
-        />
+        {/* Icon chào mừng */}
+        <Text style={styles.emoji}>🎉</Text>
 
-        <Text style={styles.title}>Welcome Kitty! 💗</Text>
-        <Text style={styles.subtitle}>Bạn đã đăng nhập thành công</Text>
+        <Text style={styles.title}>Chào mừng!</Text>
+        <Text style={styles.subtitle}>Đăng nhập thành công</Text>
 
         {username && (
           <View style={styles.infoBox}>
             <Text style={styles.label}>Xin chào,</Text>
-            <Text style={styles.username}>{username} 🌸</Text>
+            <Text style={styles.username}>{username}</Text>
           </View>
         )}
 
@@ -38,13 +34,12 @@ export default function Welcome() {
         <View style={styles.divider} />
 
         <Text style={styles.message}>
-          Chúc bạn có một ngày thật dễ thương cùng Hello Kitty! 🎀💞
+          Bạn đã đăng nhập thành công vào ứng dụng. Chúc bạn có trải nghiệm tuyệt vời!
         </Text>
 
         <TouchableOpacity style={styles.button} onPress={handleLogout}>
           <Text style={styles.buttonText}>Đăng xuất</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -53,54 +48,52 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffb6d9', // hồng pastel
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
-    padding: 24,
+    padding: 20,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 30,
-    padding: 32,
+    borderRadius: 20,
+    padding: 30,
     alignItems: 'center',
-    shadowColor: '#ff69b4',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  kitty: {
-    width: 140,
-    height: 140,
-    marginBottom: 16,
+  emoji: {
+    fontSize: 64,
+    marginBottom: 15,
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#ff4f9a',
-    marginBottom: 4,
+    color: '#333',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#ff77b7',
-    marginBottom: 20,
+    color: '#666',
+    marginBottom: 25,
   },
   infoBox: {
-    backgroundColor: '#ffe6f2',
-    borderRadius: 20,
-    padding: 18,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 10,
+    padding: 15,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 15,
   },
   label: {
     fontSize: 14,
-    color: '#d681a9',
+    color: '#666',
   },
   username: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#ff4f9a',
-    marginTop: 4,
+    color: '#4CAF50',
+    marginTop: 5,
   },
   infoRow: {
     flexDirection: 'row',
@@ -109,35 +102,32 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#d681a9',
-    marginRight: 6,
+    color: '#666',
+    marginRight: 8,
   },
   infoValue: {
     fontSize: 14,
-    color: '#ff4f9a',
-    fontWeight: '600',
+    color: '#333',
+    fontWeight: '500',
   },
   divider: {
     height: 1,
-    backgroundColor: '#ffd1e8',
+    backgroundColor: '#E0E0E0',
     width: '100%',
     marginVertical: 20,
   },
   message: {
-    fontSize: 14,
-    color: '#d681a9',
     textAlign: 'center',
+    color: '#666',
+    fontSize: 14,
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 25,
   },
   button: {
-    backgroundColor: '#ff4f9a',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#ff4f9a',
+    backgroundColor: '#f44336',
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 10,
   },
   buttonText: {
     color: '#fff',

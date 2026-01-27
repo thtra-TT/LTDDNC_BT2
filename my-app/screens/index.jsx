@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -6,7 +5,6 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -24,10 +22,11 @@ export default function Login() {
 
     try {
       const res = await api.post("/login", { email, password });
+      // Chuyển đến trang welcome với thông tin user
       router.replace({
-        pathname: "/welcome",
+        pathname: '/welcome',
         params: {
-          username: res.data.user.username || "",
+          username: res.data.user.username || '',
           email: res.data.user.email || email,
         },
       });
@@ -39,19 +38,12 @@ export default function Login() {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        
-        {/* Hello Kitty Image */}
-        <Image
-          source={{ uri: 'https://i.pinimg.com/474x/52/3a/4f/523a4f9b649b6138cd9520fe437e433a.jpg' }} 
-          style={styles.kitty}
-        />
-
-        <Text style={styles.title}>Hello Kitty Login 🎀</Text>
-        <Text style={styles.subtitle}>Welcome back sweetie 💗</Text>
+        <Text style={styles.title}>Welcome to my app</Text>
+        <Text style={styles.subtitle}>Login to your account</Text>
 
         <TextInput
           placeholder="Email"
-          placeholderTextColor="#d197b4"
+          placeholderTextColor="#999"
           style={styles.input}
           keyboardType="email-address"
           onChangeText={setEmail}
@@ -59,104 +51,90 @@ export default function Login() {
 
         <TextInput
           placeholder="Password"
-          placeholderTextColor="#d197b4"
+          placeholderTextColor="#999"
           secureTextEntry
           style={styles.input}
           onChangeText={setPassword}
         />
 
         <TouchableOpacity style={styles.button} onPress={login}>
-          <Text style={styles.buttonText}>Đăng nhập</Text>
+          <Text style={styles.buttonText}>LOGIN</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.push("/ForgetPassword")}>
-          <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+          <Text style={styles.forgotText}>Forgot password?</Text>
         </TouchableOpacity>
-
         <Text style={styles.footerText}>
-          Chưa có tài khoản?{" "}
+          Don’t have an account?{" "}
           <Text style={styles.link} onPress={() => router.push("/register")}>
-            Đăng ký ngay
+            Register
           </Text>
         </Text>
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffc6e0", // nền hồng pastel
+    backgroundColor: "#FFF0F6", // nền hồng rất nhạt
     justifyContent: "center",
     padding: 24,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 26,
-    padding: 28,
-    alignItems: "center",
-    shadowColor: "#ff69b4",
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  kitty: {
-    width: 120,
-    height: 120,
-    marginBottom: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#F06292",
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#ff4da6",
+    color: "#E91E63", // hồng đậm
   },
   subtitle: {
     textAlign: "center",
-    color: "#d178a3",
+    color: "#888",
     marginBottom: 24,
-    fontSize: 15,
   },
   input: {
-    backgroundColor: "#ffe6f2",
-    borderRadius: 18,
+    backgroundColor: "#FFF5F8", // hồng rất nhạt
+    borderRadius: 12,
     padding: 14,
     fontSize: 16,
     marginBottom: 14,
-    width: "100%",
     borderWidth: 1,
-    borderColor: "#ffb3d9",
+    borderColor: "#F3C1D6",
+    color: "#333",
   },
   button: {
-    backgroundColor: "#ff4da6",
+    backgroundColor: "#F06292", // hồng chủ đạo
     paddingVertical: 14,
-    borderRadius: 18,
+    borderRadius: 12,
     alignItems: "center",
-    width: "100%",
-    shadowColor: "#ff4da6",
-    elevation: 8,
-    marginTop: 5,
+    marginTop: 10,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 17,
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "bold",
-  },
-  forgotText: {
-    textAlign: "center",
-    marginTop: 16,
-    color: "#ff4da6",
-    fontSize: 14,
   },
   footerText: {
     textAlign: "center",
     marginTop: 20,
-    color: "#d178a3",
+    color: "#666",
+  },
+  forgotText: {
+    textAlign: "center",
+    marginTop: 15,
+    color: "#E91E63",
     fontSize: 14,
   },
   link: {
-    color: "#ff4da6",
+    color: "#E91E63",
     fontWeight: "bold",
   },
 });

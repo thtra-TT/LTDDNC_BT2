@@ -3,6 +3,12 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const { sendOTPEmail } = require('../config/email'); // 👈 Import hàm gửi email
 const { generateToken } = require('../config/jwt');
+const {
+  sendOtpLimiter,
+  verifyOtpLimiter,
+  loginLimiter,
+  resetPasswordLimiter,
+} = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -35,7 +41,7 @@ function isValidPhone(phone) {
 /* ========================================
    REGISTER - SEND OTP
    ======================================== */
-router.post('/register/send-otp', async (req, res) => {
+router.post('/register/send-otp',  sendOtpLimiter, async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
@@ -75,7 +81,7 @@ router.post('/register/send-otp', async (req, res) => {
 /* ========================================
    REGISTER - VERIFY OTP & CREATE USER
    ======================================== */
-router.post('/register', async (req, res) => {
+router.post('/register',  verifyOtpLimiter, async (req, res) => {
   const { username, email, phone, password, otp } = req.body;
 
   const identifier = email || phone;
@@ -123,7 +129,7 @@ router.post('/register', async (req, res) => {
   );
 });
 
-router.post('/login', (req, res) => {
+router.post('/login',  loginLimiter,  (req, res) => {
   const { email, password } = req.body;
 
   User.findByEmail(email, async (err, user) => {
@@ -159,7 +165,7 @@ router.post('/login', (req, res) => {
    FORGOT PASSWORD - GỬI OTP
    Hỗ trợ cả email và số điện thoại
    ======================================== */
-router.post('/forgot-password/send-otp', async (req, res) => {
+router.post('/forgot-password/send-otp',  sendOtpLimiter,  async (req, res) => {
   const { email, phone } = req.body;
 
   // Validate input
@@ -180,8 +186,8 @@ router.post('/forgot-password/send-otp', async (req, res) => {
 
   // Kiểm tra user tồn tại (tìm theo email)
   // Nếu dùng phone, cần thêm hàm findByPhone trong User model
-  const findUser = email 
-    ? User.findByEmail 
+  const findUser = email
+    ? User.findByEmail
     : User.findByPhone || User.findByEmail; // fallback nếu chưa có findByPhone
 
   findUser(identifier, async (err, user) => {
@@ -190,9 +196,9 @@ router.post('/forgot-password/send-otp', async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ 
-        message: identifierType === 'email' 
-          ? 'Email không tồn tại trong hệ thống' 
+      return res.status(404).json({
+        message: identifierType === 'email'
+          ? 'Email không tồn tại trong hệ thống'
           : 'Số điện thoại không tồn tại trong hệ thống'
       });
     }
@@ -217,7 +223,7 @@ router.post('/forgot-password/send-otp', async (req, res) => {
 
     console.log(`✅ OTP đã tạo cho ${identifierType}: ${identifier} => ${otp}`);
 
-    res.json({ 
+    res.json({
       message: identifierType === 'email'
         ? 'Mã OTP đã được gửi đến email của bạn'
         : 'Mã OTP đã được gửi đến số điện thoại của bạn'
@@ -229,7 +235,7 @@ router.post('/forgot-password/send-otp', async (req, res) => {
    FORGOT PASSWORD - ĐẶT LẠI MẬT KHẨU
    Xác minh OTP và cập nhật mật khẩu mới
    ======================================== */
-router.post('/forgot-password/reset-password', (req, res) => {
+router.post('/forgot-password/reset-password',  resetPasswordLimiter, (req, res) => {
   const { email, phone, otp, newPassword } = req.body;
 
   const identifier = email || phone;
