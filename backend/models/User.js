@@ -40,17 +40,30 @@ const User = {
    * @param {object} user
    * @param {function} callback
    */
-  create: (user, callback) => {
-    const sql = `
-      INSERT INTO users (username, email, password)
-      VALUES (?, ?, ?)
-    `;
-    db.query(
-      sql,
-      [user.username, user.email, user.password],
-      callback
-    );
-  }
+//  create: (user, callback) => {
+//    const sql = `
+//      INSERT INTO users (username, email, password, role)
+//      VALUES (?, ?, ?, ?)
+//    `;
+//    db.query(
+//      sql,
+//      [user.username, user.email, user.password],
+//      callback
+//    );
+//  }
+
+    create: (user, callback) => {
+      const sql = `
+        INSERT INTO users (username, email, password, role)
+        VALUES (?, ?, ?, ?)
+      `;
+      db.query(
+        sql,
+        [user.username, user.email, user.password, user.role || 'user'],
+        callback
+      );
+    }
+
 };
 
 module.exports = User;

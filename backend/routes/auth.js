@@ -114,6 +114,7 @@ router.post('/register',  verifyOtpLimiter, async (req, res) => {
       email: email || null,
       phone: phone || null,
       password: hashedPassword,
+      role: email === 'admin@gmail.com' ? 'admin' : 'user'
     },
     (err) => {
       if (err) {
@@ -156,6 +157,7 @@ router.post('/login',  loginLimiter,  (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
+        role: user.role,
       },
     });
   });

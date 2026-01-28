@@ -8,6 +8,7 @@ function generateToken(user) {
     {
       id: user.id,
       email: user.email,
+      role: user.role
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }

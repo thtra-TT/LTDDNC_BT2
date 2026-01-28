@@ -24,7 +24,7 @@ export default function Login() {
       const res = await api.post("/login", { email, password });
       // Chuyển đến trang welcome với thông tin user
       router.replace({
-        pathname: '/welcome',
+        pathname: '/home',
         params: {
           username: res.data.user.username || '',
           email: res.data.user.email || email,
@@ -82,61 +82,73 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FFD6E7", // Hồng pastel
     justifyContent: "center",
     padding: 20,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 25,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    backgroundColor: "#FFF0F6", // Hồng nhẹ
+    borderRadius: 25,
+    padding: 28,
+    shadowColor: "#FF8BB3",
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: "#FFB6D9",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#333",
+    color: "#FF4F9A",
+    marginBottom: 5,
   },
   subtitle: {
     textAlign: "center",
-    color: "#666",
+    color: "#D46A9E",
     marginBottom: 30,
+    fontSize: 15,
   },
   input: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
+    backgroundColor: "#FFE6F2",
+    borderRadius: 12,
     padding: 15,
     fontSize: 16,
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#FFB6D9",
+    color: "#D62478",
   },
   button: {
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FF5CA8",
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "bold",
   },
   forgotText: {
     textAlign: "center",
     marginTop: 15,
-    color: "#6C63FF",
+    color: "#FF4F9A",
+    fontSize: 14,
+    textDecorationLine: "underline",
   },
   footerText: {
     textAlign: "center",
     marginTop: 20,
-    color: "#666",
+    color: "#D46A9E",
+    fontSize: 14,
   },
   link: {
-    color: "#6C63FF",
+    color: "#FF4F9A",
     fontWeight: "bold",
+    textDecorationLine: "underline",
   },
 });
+

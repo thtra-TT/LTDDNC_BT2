@@ -225,7 +225,7 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FFD6E7", // Hồng pastel
   },
   scrollContainer: {
     flexGrow: 1,
@@ -233,42 +233,48 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
+    backgroundColor: "#FFF0F6", // Hồng nhẹ
+    borderRadius: 25,
     padding: 25,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowColor: "#FF8BB3",
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: "#FFB6D9",
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#333",
-    marginBottom: 8,
+    color: "#FF4F9A",
+    marginBottom: 10,
   },
   subtitle: {
     textAlign: "center",
-    color: "#666",
+    color: "#D46A9E",
     marginBottom: 25,
+    fontSize: 15,
   },
   input: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 10,
+    backgroundColor: "#FFE6F2",
+    borderRadius: 12,
     padding: 15,
     fontSize: 16,
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#FFB6D9",
+    color: "#D62478",
   },
   button: {
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#FF5CA8",
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     marginTop: 10,
   },
   buttonDisabled: {
-    backgroundColor: "#A5A0FF",
+    backgroundColor: "#FF9AC9",
   },
   buttonText: {
     color: "#fff",
@@ -280,15 +286,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   resendText: {
-    color: "#6C63FF",
+    color: "#FF4F9A",
     fontSize: 14,
+    textDecorationLine: "underline",
   },
   backButton: {
     marginTop: 20,
     alignItems: "center",
   },
   backText: {
-    color: "#666",
+    color: "#D46A9E",
     fontSize: 14,
   },
 });
