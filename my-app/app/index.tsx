@@ -9,10 +9,12 @@ import {
 import { router } from "expo-router";
 import { useState } from "react";
 import api from "../services/api";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { saveUser } = useAuth();
 
   const login = async () => {
     if (!email || !password) {
@@ -22,14 +24,15 @@ export default function Login() {
 
     try {
       const res = await api.post("/login", { email, password });
-      // Chuyển đến trang welcome với thông tin user
-      router.replace({
-        pathname: '/home',
-        params: {
-          username: res.data.user.username || '',
-          email: res.data.user.email || email,
-        },
+      saveUser({
+        id: res.data.user.id.toString(),
+        username: res.data.user.username,
+        email: res.data.user.email,
+        token: res.data.token,
       });
+
+      // Điều hướng sang Home
+      router.replace("/home");
     } catch {
       Alert.alert("Đăng nhập thất bại", "Sai email hoặc mật khẩu");
     }

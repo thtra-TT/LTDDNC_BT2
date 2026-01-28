@@ -4,14 +4,27 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Home() {
+  const { user } = useAuth();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
+
+        {/* USER INFO */}
+        {user && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={{ fontSize: 22, fontWeight: "bold", color: "#D62478" }}>
+              Xin chào, {user.username}
+            </Text>
+            <Text style={{ color: "#D46A9E" }}>{user.email}</Text>
+          </View>
+        )}
 
         {/* HEADER */}
         <View style={{ marginBottom: 20 }}>
@@ -96,7 +109,7 @@ export default function Home() {
           Sách nổi bật
         </Text>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 15 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
           {[1, 2, 3, 4].map((_, index) => (
             <TouchableOpacity
               key={index}
@@ -109,6 +122,7 @@ export default function Home() {
                 shadowOpacity: 0.1,
                 shadowRadius: 5,
                 elevation: 3,
+                marginBottom: 15, // thay gap
               }}
             >
               <Image
