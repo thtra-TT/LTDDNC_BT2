@@ -1,17 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-export default function WelcomeScreen() {
-  const { username, email } = useLocalSearchParams<{ username: string; email: string }>();
+export default function WelcomeScreen({ navigation, route }: any) {
+  const { username, email } = route.params || {};
 
   const handleLogout = () => {
-    router.replace('/');
+    navigation.replace("Login");
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        {/* Icon chào mừng */}
         <Text style={styles.emoji}>🎉</Text>
 
         <Text style={styles.title}>Chào mừng!</Text>
@@ -44,7 +42,6 @@ export default function WelcomeScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../hooks/useAuth";
 
-export default function Home() {
+export default function HomeScreen({ navigation }: any) {
   const { user } = useAuth();
 
   return (

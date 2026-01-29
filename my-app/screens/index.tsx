@@ -6,12 +6,11 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import { router } from "expo-router";
 import { useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 
-export default function Login() {
+export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { saveUser } = useAuth();
@@ -24,6 +23,7 @@ export default function Login() {
 
     try {
       const res = await api.post("/login", { email, password });
+
       saveUser({
         id: res.data.user.id.toString(),
         username: res.data.user.username,
@@ -31,8 +31,8 @@ export default function Login() {
         token: res.data.token,
       });
 
-      // Điều hướng sang Home
-      router.replace("/home");
+      // 👉 Điều hướng đúng chuẩn
+      navigation.replace("Home");
     } catch {
       Alert.alert("Đăng nhập thất bại", "Sai email hoặc mật khẩu");
     }
@@ -67,13 +67,18 @@ export default function Login() {
           <Text style={styles.buttonText}>LOGIN</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ForgotPassword")}
+        >
           <Text style={styles.forgotText}>Quên mật khẩu?</Text>
         </TouchableOpacity>
 
         <Text style={styles.footerText}>
           Don't have an account?{" "}
-          <Text style={styles.link} onPress={() => router.push("/register")}>
+          <Text
+            style={styles.link}
+            onPress={() => navigation.navigate("Register")}
+          >
             Register
           </Text>
         </Text>
@@ -154,4 +159,3 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 });
-
