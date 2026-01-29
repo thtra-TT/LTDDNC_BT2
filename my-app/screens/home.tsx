@@ -16,6 +16,8 @@ export default function HomeScreen({ navigation }: any) {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
 
+
+
         {/* USER INFO */}
         {user && (
           <View style={{ marginBottom: 20 }}>
@@ -23,8 +25,25 @@ export default function HomeScreen({ navigation }: any) {
               Xin chào, {user.username}
             </Text>
             <Text style={{ color: "#D46A9E" }}>{user.email}</Text>
+
+            {/* BUTTON PROFILE */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Profile")}
+              style={{
+                marginTop: 10,
+                backgroundColor: "#6C63FF",
+                paddingVertical: 10,
+                borderRadius: 10,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+                Trang cá nhân
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
+
 
         {/* HEADER */}
         <View style={{ marginBottom: 20 }}>
