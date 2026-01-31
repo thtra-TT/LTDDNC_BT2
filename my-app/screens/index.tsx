@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }: any) {
       });
 
       // 👉 Điều hướng đúng chuẩn
-      navigation.replace("Home");
+      navigation.replace("MainTabs");
     } catch {
       Alert.alert("Đăng nhập thất bại", "Sai email hoặc mật khẩu");
     }

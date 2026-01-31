@@ -146,22 +146,31 @@ const User = {
   /** =============================
    *  CẬP NHẬT THÔNG TIN CƠ BẢN
    * ============================= */
-  updateInfo: (id, full_name, address, callback) => {
-    const sql = `
-      UPDATE users
-      SET full_name=?, address=?
-      WHERE id=?
-    `;
-    db.query(sql, [full_name, address, id], callback);
-  },
+//  updateInfo: (id, full_name, address, callback) => {
+//    const sql = `
+//      UPDATE users
+//      SET full_name=?, address=?
+//      WHERE id=?
+//    `;
+//    db.query(sql, [full_name, address, id], callback);
+//  },
+    updateInfo: (id, full_name, address, phone, callback) => {
+      const sql = `
+        UPDATE users
+        SET full_name=?, address=?, phone=?
+        WHERE id=?
+      `;
+      db.query(sql, [full_name, address, phone, id], callback);
+    },
 
-  /** =============================
-   *  CẬP NHẬT SỐ ĐIỆN THOẠI
-   * ============================= */
-  updatePhone: (id, phone, callback) => {
-    const sql = "UPDATE users SET phone=? WHERE id=?";
-    db.query(sql, [phone, id], callback);
-  },
+
+//  /** =============================
+//   *  CẬP NHẬT SỐ ĐIỆN THOẠI
+//   * ============================= */
+//  updatePhone: (id, phone, callback) => {
+//    const sql = "UPDATE users SET phone=? WHERE id=?";
+//    db.query(sql, [phone, id], callback);
+//  },
 
   /** =============================
    *  LƯU OTP VÀO DATABASE
