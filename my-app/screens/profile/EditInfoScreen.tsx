@@ -11,9 +11,14 @@ import {
 import api from "../../services/api";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "../../hooks/useAuth";
+import Constants from "expo-constants";
+const BASE_URL = Constants.expoConfig.extra.BASE_URL;
+
 
 export default function EditInfoScreen() {
   const navigation = useNavigation();
+  const { loadUser } = useAuth();
 
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
@@ -24,7 +29,7 @@ export default function EditInfoScreen() {
 
 
   // ==== đổi email + OTP ====
-  const [step, setStep] = useState("none");     // none | change | verify
+  const [step, setStep] = useState("none");
   const [newEmail, setNewEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpServer, setOtpServer] = useState("");
@@ -42,7 +47,11 @@ export default function EditInfoScreen() {
         setEmail(data.email || "");
         setAddress(data.address || "");
         setPhone(data.phone || "");
-        setAvatar(data.avatar || "");
+        setAvatar(
+          data.avatar
+            ? `${BASE_URL}/uploads/${data.avatar}`
+            : ""
+        );
         console.log("PROFILE DATA:", data);
 
       } catch (error) {
@@ -68,27 +77,34 @@ export default function EditInfoScreen() {
   };
 
   // ================= UPLOAD AVATAR =================
-  const uploadAvatar = async (image) => {
-    try {
-      const formData = new FormData();
-      formData.append("avatar", {
-        uri: image.uri,
-        name: "avatar.jpg",
-        type: "image/jpeg",
-      });
+    const uploadAvatar = async (image) => {
+      try {
+        const formData = new FormData();
+        formData.append("avatar", {
+          uri: image.uri,
+          name: "avatar.jpg",
+          type: "image/jpeg",
+        });
 
-      const res = await api.put("/profile/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+        const res = await api.put("/profile/avatar", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+          transformRequest: () => formData,
+        });
 
-      setAvatar(res.data.avatar_url);
-      alert("Đổi avatar thành công!");
+        const fullUrl = `${BASE_URL}/uploads/${res.data.avatar}`;
+        console.log("FULL URL:", fullUrl);
 
-    } catch (error) {
-      console.log(error);
-      alert("Không thể upload avatar");
-    }
-  };
+        setAvatar(fullUrl);
+        alert("Đổi avatar thành công!");
+      } catch (error) {
+        console.log("UPLOAD ERROR:", error);
+        alert("Không thể upload avatar!");
+      }
+    };
+
 
     const sendOTP = async () => {
       try {
@@ -108,8 +124,8 @@ export default function EditInfoScreen() {
     const verifyOTP = async () => {
       try {
         await api.post("/profile/verify-otp", {
-          otp_client: otp,       // Người dùng nhập
-          otp_server: otpServer, // OTP backend đã gửi
+          otp_client: otp,
+          otp_server: otpServer,
 
           new_email: newEmail,
         });
@@ -131,21 +147,6 @@ export default function EditInfoScreen() {
 
 
   // ================= SAVE INFO =================
-//   const saveInfo = async () => {
-//     try {
-//       await api.put("/profile/info", {
-//         full_name: fullName,
-//         address,
-//         phone,
-//       });
-//
-//       alert("Cập nhật thành công!");
-//       navigation.goBack();
-//     } catch (error) {
-//       alert("Lỗi cập nhật!");
-//     }
-//   };
-
     const saveInfo = async () => {
       try {
         const res = await api.put("/profile/info", {

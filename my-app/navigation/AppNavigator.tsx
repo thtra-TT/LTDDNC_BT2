@@ -15,6 +15,8 @@ import ChangePasswordScreen from "../screens/profile/ChangePasswordScreen";
 import ChangeEmailScreen from "../screens/profile/ChangeEmailScreen";
 
 import BookDetailScreen from "../screens/BookDetail";
+import SearchResultScreen from "../screens/SearchResultScreen";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +38,7 @@ export default function AppNavigator() {
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
 
       <Stack.Screen name="BookDetail" component={BookDetailScreen} />
+      <Stack.Screen name="SearchResult" component={SearchResultScreen} />
 
     </Stack.Navigator>
   );

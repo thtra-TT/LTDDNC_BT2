@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,21 +9,41 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useAuth } from "../../hooks/useAuth";  // lấy user từ DB
+import { useAuth } from "../../hooks/useAuth";
 import Constants from "expo-constants";
-const API_URL = Constants.expoConfig.extra.API_URL;
+import { useFocusEffect } from "@react-navigation/native";
+import { RefreshControl } from "react-native";
+
 const BASE_URL = Constants.expoConfig.extra.BASE_URL;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
-  const { user } = useAuth(); // user thật từ backend
+  const { user, loadUser } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+
   console.log("USER DATA FROM CONTEXT:", user);
   console.log("AVATAR URL:", `${BASE_URL}/uploads/${user?.avatar}`);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadUser();
+    setRefreshing(false);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUser();
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.headerText}>Tài khoản</Text>
@@ -45,9 +65,6 @@ export default function ProfileScreen() {
               onError={(err) => console.log("🔥 IMAGE ERROR:", err.nativeEvent.error)}
               style={styles.avatar}
             />
-
-
-
 
             <View style={{ marginLeft: 15 }}>
               <Text style={styles.name}>{user?.username || "No Name"}</Text>

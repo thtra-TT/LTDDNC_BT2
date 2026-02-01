@@ -120,12 +120,6 @@ exports.sendOTP = async (req, res) => {
 
 
 /// Xác minh OTP → đổi email
-// =========================
-// XÁC MINH OTP & ĐỔI EMAIL
-// =========================
-// =========================
-// XÁC MINH OTP & ĐỔI EMAIL (ĐÃ SỬA)
-// =========================
 exports.verifyOTP = (req, res) => {
   const userId = req.user.id;
   const { otp_client, otp_server, new_email } = req.body;
