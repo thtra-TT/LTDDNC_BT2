@@ -1,0 +1,174 @@
+-- 1. Tạo database (nếu chưa có)
+CREATE DATABASE IF NOT EXISTS auth_app;
+USE auth_app;
+
+-- 2. Tạo bảng users (bản mở rộng có full_name)
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  full_name VARCHAR(120),                  -- Họ tên người dùng
+  username VARCHAR(100) NOT NULL,          -- Username
+  email VARCHAR(100) NOT NULL UNIQUE,      -- Email (duy nhất)
+  password VARCHAR(255) NOT NULL,          -- Mật khẩu (đã mã hóa bcrypt)
+
+  phone VARCHAR(20),                        -- Số điện thoại
+  address VARCHAR(255),                     -- Địa chỉ
+  avatar VARCHAR(255),                      -- Link ảnh đại diện
+
+  role VARCHAR(20) DEFAULT 'user',          -- user / admin
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 3. Thêm tài khoản ADMIN ngay lập tức
+INSERT INTO users (full_name, username, email, password, role)
+VALUES (
+  'Quản trị viên',
+  'Admin',
+  'admin@gmail.com',
+  '$2b$10$mqi.w33yWaTrM6oCO3wA/eFu5UIuFD/N20JmqwrURQ5Z2Ix13ORqW',
+  'admin'
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS authors (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS publishers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  title VARCHAR(255) NOT NULL,           -- Tên sách
+  description TEXT,                      -- Mô tả
+  price DECIMAL(10,2) NOT NULL,          -- Giá
+  stock INT DEFAULT 0,                   -- Số lượng tồn
+  cover_image VARCHAR(255),              -- Link ảnh bìa
+
+  category_id INT,
+  author_id INT,
+  publisher_id INT,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (category_id) REFERENCES categories(id),
+  FOREIGN KEY (author_id) REFERENCES authors(id),
+  FOREIGN KEY (publisher_id) REFERENCES publishers(id)
+);
+CREATE TABLE IF NOT EXISTS orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  total DECIMAL(10,2) NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE TABLE IF NOT EXISTS order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  
+  order_id INT NOT NULL,
+  book_id INT NOT NULL,
+
+  quantity INT NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (book_id) REFERENCES books(id)
+);
+
+INSERT INTO categories (name) VALUES
+('Văn học'),
+('Kinh tế'),
+('Công nghệ'),
+('Thiếu nhi'),
+('Kỹ năng');
+INSERT INTO authors (name) VALUES
+('Nguyễn Nhật Ánh'),
+('Brian Tracy'),
+('Yuval Noah Harari'),
+('Trần Hữu Tài'),
+('Phạm Văn Tuấn');
+INSERT INTO publishers (name) VALUES
+('NXB Kim Đồng'),
+('NXB Trẻ'),
+('NXB Lao Động'),
+('NXB Thế Giới'),
+('NXB Công Nghệ');
+INSERT INTO books (title, description, price, stock, cover_image, category_id, author_id, publisher_id)
+VALUES
+(
+  'Đắc Nhân Tâm',
+  'Cuốn sách kỹ năng sống kinh điển giúp cải thiện giao tiếp và thấu hiểu con người.',
+  89000,
+  50,
+  'https://salt.tikicdn.com/ts/produczzt/3e/82/5f/0e56e7b1b1a0ffdc5b9eebda1aba920d.jpg',
+  5,  -- Kỹ năng
+  2,  -- Brian Tracy
+  3   -- NXB Lao Động
+),
+(
+  'Lập Trình AI Từ Cơ Bản Đến Nâng Cao',
+  'Tài liệu hướng dẫn các kiến thức nền tảng và kỹ thuật AI hiện đại.',
+  150000,
+  30,
+  'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+  3,  -- Công nghệ
+  4,  -- Trần Hữu Tài
+  5   -- NXB Công Nghệ
+),
+(
+  'Tuổi Trẻ Đáng Giá Bao Nhiêu',
+  'Thông điệp truyền cảm hứng cho người trẻ trong thời đại mới.',
+  79000,
+  20,
+  'https://cdn0.fahasa.com/media/catalog/product/8/9/8935278600073.jpg',
+  5,  -- Kỹ năng
+  5,  -- Phạm Văn Tuấn
+  2   -- NXB Trẻ
+),
+(
+  'Tớ Là Bêtô',
+  'Một câu chuyện nhẹ nhàng, đáng yêu dành cho thiếu nhi.',
+  65000,
+  40,
+  'https://bizweb.dktcdn.net/thumb/1024x1024/100/363/455/products/to-la-beto.png?v=1714440001320',
+  4,  -- Thiếu nhi
+  1,  -- Nguyễn Nhật Ánh
+  1   -- NXB Kim Đồng
+),
+(
+  'Sapiens: Lược Sử Loài Người',
+  'Tác phẩm nổi tiếng phân tích lịch sử tiến hóa của nhân loại.',
+  199000,
+  15,
+  'https://cdn0.fahasa.com/media/catalog/product/9/7/9786045656403.jpg',
+  2,  -- Kinh tế (tạm cho vào)
+  3,  -- Yuval Noah Harari
+  4   -- NXB Thế Giới
+),
+(
+  'Hành Trình Về Phương Đông',
+  'Một cuốn sách đầy triết lý và khám phá văn hóa phương Đông.',
+  99000,
+  25,
+  'https://salt.tikicdn.com/cache/w1200/ts/product/fa/df/5e/40066c0950f62cdb2fff4e0df9e3e908.jpg',
+  1,  -- Văn học
+  5,  -- Phạm Văn Tuấn
+  2   -- NXB Trẻ
+);
+
+UPDATE books
+SET cover_image = 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg'
+WHERE id > 0;

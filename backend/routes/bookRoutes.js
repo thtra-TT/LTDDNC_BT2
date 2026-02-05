@@ -37,6 +37,62 @@ router.get("/", (req, res) => {
   });
 });
 
+router.get("/best-sellers", (req, res) => {
+  const sql = `
+    SELECT
+      b.id,
+      b.title,
+      b.price,
+      b.original_price,
+      b.cover_image,
+      b.author_id,
+      a.name AS author_name,
+      SUM(oi.quantity) AS total_sold
+    FROM order_items oi
+    JOIN books b ON oi.book_id = b.id
+    LEFT JOIN authors a ON b.author_id = a.id
+    GROUP BY b.id
+    ORDER BY total_sold DESC
+    LIMIT 10
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Lỗi API best-sellers:", err);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+
+    res.json(results);
+  });
+});
+
+// ===============================
+//  API: 20 sản phẩm giảm giá cao nhất
+// ===============================
+router.get("/top-discount", (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+
+  const sql = `
+    SELECT
+      id,
+      title,
+      cover_image,
+      price,
+      original_price,
+      ROUND((original_price - price) / original_price * 100, 2) AS discount_percent
+    FROM books
+    WHERE original_price > price
+    ORDER BY discount_percent DESC
+    LIMIT ?
+  `;
+
+  db.query(sql, [limit], (err, results) => {
+    if (err) return res.status(500).json({ message: "Lỗi server", error: err });
+
+    res.json(results);
+  });
+});
+
 router.get("/:id", (req, res) => {
   const sql = `
     SELECT

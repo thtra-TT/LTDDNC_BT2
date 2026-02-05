@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { FlatList } from "react-native";
+
 
 export default function HomeScreen({ navigation }: any) {
   const { user } = useAuth();
@@ -23,6 +25,12 @@ export default function HomeScreen({ navigation }: any) {
   const [categoryFilter, setCategoryFilter] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggest, setShowSuggest] = useState(false);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loadingBest, setLoadingBest] = useState(true);
+  const [topDiscounts, setTopDiscounts] = useState([]);
+  const [loadingDiscount, setLoadingDiscount] = useState(true);
+
+
 
   const formatPrice = (price) => {
     return Number(price).toLocaleString("vi-VN") + " VNĐ";
@@ -94,6 +102,40 @@ export default function HomeScreen({ navigation }: any) {
     useEffect(() => {
       loadCategories();
     }, []);
+
+
+    const loadBestSellers = async () => {
+      try {
+        const res = await api.get("/books/best-sellers");
+        setBestSellers(res.data);
+      } catch (err) {
+        console.log("Lỗi load best sellers:", err);
+      } finally {
+        setLoadingBest(false);
+      }
+    };
+
+    useEffect(() => {
+      loadBestSellers();
+    }, []);
+
+
+    const loadTopDiscounts = async () => {
+      try {
+        const res = await api.get("/books/top-discount?limit=20");
+        setTopDiscounts(res.data);
+      } catch (err) {
+        console.log("Lỗi load top discounts:", err);
+      } finally {
+        setLoadingDiscount(false);
+      }
+    };
+
+    useEffect(() => {
+      loadTopDiscounts();
+    }, []);
+
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
@@ -275,78 +317,174 @@ export default function HomeScreen({ navigation }: any) {
           )}
         </ScrollView>
 
-        {/* SÁCH NỔI BẬT */}
-        <View
+        {/* TOP 10 BÁN CHẠY – chỉ hiển thị khi KHÔNG lọc danh mục */}
+        {!categoryFilter && (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
+                marginTop: 20,
+              }}
+            >
+              <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                Top 10 sách bán chạy nhất
+              </Text>
+            </View>
+
+            {loadingBest ? (
+              <Text style={{ marginLeft: 20 }}>Đang tải...</Text>
+            ) : (
+              <FlatList
+                data={bestSellers}
+                horizontal
+                keyExtractor={(item) => item.id.toString()}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingLeft: 20, paddingVertical: 10 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={{
+                      width: 150,
+                      backgroundColor: "#fff",
+                      borderRadius: 16,
+                      padding: 10,
+                      marginRight: 15,
+                      elevation: 3,
+                    }}
+                    onPress={() => navigation.navigate("BookDetail", { id: item.id })}
+                  >
+                    <Image
+                      source={{ uri: item.cover_image }}
+                      style={{ width: "100%", height: 140, borderRadius: 10 }}
+                    />
+
+                    <Text style={{ fontWeight: "bold", marginTop: 6 }} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+
+                    <Text style={{ color: "#999", fontSize: 12 }}>
+                      {item.author_name}
+                    </Text>
+
+                    <Text
+                      style={{
+                        color: "#6C63FF",
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        marginTop: 4,
+                      }}
+                    >
+                      {Number(item.price).toLocaleString("vi-VN")}đ
+                    </Text>
+
+                    <Text
+                      style={{
+                        textDecorationLine: "line-through",
+                        color: "#999",
+                        fontSize: 12,
+                      }}
+                    >
+                      {Number(item.original_price).toLocaleString("vi-VN")}đ
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </>
+        )}
+
+        {/* 20 SẢN PHẨM GIẢM GIÁ CAO NHẤT */}
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingHorizontal: 20,
-            marginTop: 10,
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 20,
+            marginTop: 20,
+            marginBottom: 10,
           }}
         >
-          <Text style={{ fontSize: 20, fontWeight: "bold" }}>Sách nổi bật</Text>
+          Giảm giá nhiều nhất
+        </Text>
 
-          <TouchableOpacity>
-            <Text style={{ color: "#6C63FF" }}>Xem tất cả</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* LIST SÁCH */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ paddingLeft: 20, marginTop: 10 }}
-        >
-          {loadingBooks ? (
-            <Text>Đang tải...</Text>
-          ) : (
-            books.map((item: any) => (
+        {loadingDiscount ? (
+          <Text style={{ marginLeft: 20 }}>Đang tải...</Text>
+        ) : (
+          <FlatList
+            data={topDiscounts}
+            numColumns={2}
+            keyExtractor={(item) => item.id.toString()}
+            columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 20 }}
+            renderItem={({ item }) => (
               <TouchableOpacity
-                key={item.id}
                 style={{
-                  width: 160,
+                  width: "48%",
                   backgroundColor: "#fff",
                   borderRadius: 16,
                   padding: 12,
-                  marginRight: 15,
+                  marginBottom: 15,
                   elevation: 3,
                 }}
-                onPress={() =>
-                  navigation.navigate("BookDetail", { id: item.id })
-                }
+                onPress={() => navigation.navigate("BookDetail", { id: item.id })}
               >
                 <Image
                   source={{ uri: item.cover_image }}
                   style={{
                     width: "100%",
-                    height: 150,
+                    height: 160,
                     borderRadius: 12,
-                    marginBottom: 8,
+                    marginBottom: 10,
                   }}
                 />
 
-                <Text style={{ fontWeight: "bold", fontSize: 14 }}>
+                <Text numberOfLines={2} style={{ fontWeight: "bold", fontSize: 14 }}>
                   {item.title}
                 </Text>
+
                 <Text style={{ color: "#999", fontSize: 12 }}>
-                  Tác giả: {item.author_name || item.author?.name || "Không rõ"}
+                  {item.author_name || "Không rõ"}
                 </Text>
 
                 <Text
                   style={{
-                    fontSize: 16,
-                    color: "#6C63FF",
-                    fontWeight: "bold",
                     marginTop: 6,
+                    color: "#E53935",
+                    fontWeight: "bold",
+                    fontSize: 16,
                   }}
                 >
-                  {formatPrice(item.price)}
+                  {Number(item.price).toLocaleString("vi-VN")}đ
                 </Text>
 
+                <Text
+                  style={{
+                    textDecorationLine: "line-through",
+                    color: "#999",
+                    fontSize: 12,
+                  }}
+                >
+                  {Number(item.original_price).toLocaleString("vi-VN")}đ
+                </Text>
+
+                <View
+                  style={{
+                    backgroundColor: "#E91E63",
+                    paddingVertical: 3,
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                    alignSelf: "flex-start",
+                    marginTop: 5,
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>
+                    -{Math.round(item.discount_percent)}%
+                  </Text>
+                </View>
               </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+            )}
+          />
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
