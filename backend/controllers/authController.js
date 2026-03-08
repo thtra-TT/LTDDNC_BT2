@@ -1,98 +1,107 @@
-const { users } = require('../models/User');
-
-const jwt = require('jsonwebtoken');
-
-
+const bcrypt = require('bcrypt');
+const User = require('../models/User');
 const db = require('../db');
+const { sendOTPEmail } = require('../config/email');
+const { generateToken } = require('../config/jwt');
+const helpers = require('../utils/authHelpers');
 
-// Secret Key (Nên giống với bên middleware)
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_123';
+// Lưu trữ OTP tạm thời (Trong production nên dùng Redis)
+const otpStore = {};
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // 1. Tìm user
-    const [rows] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
-    const user = rows[0];
-
-    // --- ĐOẠN DEBUG (MÁY SOI) BẮT ĐẦU ---
-    console.log("========== BẮT ĐẦU DEBUG ==========");
-    console.log("1. Email khách gửi lên:", email);
-    console.log("2. Pass khách nhập:", `"${password}"`); // Để trong ngoặc kép để soi khoảng trắng
-
-    if (user) {
-        console.log("3. Pass lấy từ DB ra:", `"${user.password}"`); // Soi xem DB đang lưu cái gì
-        console.log("4. So sánh:", user.password === password ? "GIỐNG NHAU" : "KHÁC NHAU");
-        console.log("5. Độ dài:", `Khách(${password.length}) - DB(${user.password.length})`);
-    } else {
-        console.log("3. Lỗi: Không tìm thấy user trong DB!");
-    }
-    console.log("========== KẾT THÚC DEBUG ==========");
-    // --- HẾT ĐOẠN DEBUG ---
-
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    if (user.password !== password) {
-      return res.status(401).json({ message: 'Wrong password' });
-    }
-
-    // Nếu pass đúng thì tạo token
-    const token = jwt.sign(
-        {
-            id: user.id,
-            email: user.email,
-            role: user.role
-        },
-        JWT_SECRET,
-        { expiresIn: '1h' }
-    );
-
-
-    res.json({
-      message: 'Login success',
-      token: token,
-      user: { id: user.id, email: user.email, role: user.role }
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Lỗi server' });
+// --- REGISTER: SEND OTP ---
+exports.sendRegisterOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email || !helpers.isValidEmail(email)) {
+    return res.status(400).json({ message: 'Email không hợp lệ' });
   }
+
+  User.findByEmail(email, async (err, user) => {
+    if (err) return res.status(500).json({ message: 'Lỗi server' });
+    if (user) return res.status(400).json({ message: 'Email đã được đăng ký' });
+
+    const otp = helpers.generateOTP();
+    const expiryTime = Date.now() + 10 * 60 * 1000;
+    otpStore[`register_${email}`] = { otp, expiryTime };
+
+    const result = await sendOTPEmail(email, otp);
+    if (!result.success) return res.status(500).json({ message: 'Không gửi được email OTP' });
+
+    res.json({ message: 'OTP đã được gửi tới email' });
+  });
 };
 
-
+// --- REGISTER: VERIFY & CREATE ---
 exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, phone, password, otp } = req.body;
+  const identifier = email || phone;
+  const otpKey = `register_${identifier}`;
+  const otpData = otpStore[otpKey];
 
-  if (!username || !email || !password) {
-    return res.status(400).json({ message: 'Thiếu thông tin: username, email, password' });
+  if (!otpData || Date.now() > otpData.expiryTime || otp !== otpData.otp) {
+    return res.status(400).json({ message: 'OTP không hợp lệ hoặc hết hạn' });
   }
 
-  try {
-    // 1. Kiểm tra xem email đã tồn tại trong DB chưa
-    const [existingUser] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  User.create({
+    username, email, phone,
+    password: hashedPassword,
+    role: email === 'admin@gmail.com' ? 'admin' : 'user'
+  }, (err) => {
+    if (err) return res.status(500).json({ message: 'Đăng ký thất bại' });
+    delete otpStore[otpKey];
+    res.json({ message: 'Đăng ký thành công' });
+  });
+};
 
-    if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Email này đã được đăng ký' });
-    }
+// --- LOGIN ---
+exports.login = (req, res) => {
+  const { email, password } = req.body;
+  User.findByEmail(email, async (err, user) => {
+    if (err || !user) return res.status(401).json({ message: 'Tài khoản không tồn tại' });
 
-    // 2. Logic cấp quyền Admin (Hack tạm thời)
-    // Nếu email là admin@gmail.com thì lưu role = 'admin', ngược lại là 'user'
-    const role = (email === 'admin@gmail.com') ? 'admin' : 'user';
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: 'Sai mật khẩu' });
 
-    // 3. Insert user mới vào MySQL
-    await db.promise().query(
-      'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-      [username, email, password, role]
-    );
+    const token = generateToken(user);
+    res.json({ message: 'Login success', token, user });
+  });
+};
 
-    res.json({ message: 'Đăng ký thành công', role: role });
+// --- FORGOT PASSWORD: SEND OTP ---
+exports.sendForgotPassOtp = async (req, res) => {
+  const { email, phone } = req.body;
+  const identifier = email || phone;
+  if (!identifier) return res.status(400).json({ message: 'Thiếu thông tin' });
 
-  } catch (err) {
-    console.error("Lỗi Register:", err);
-    res.status(500).json({ message: 'Lỗi server khi đăng ký' });
+  User.findByEmail(identifier, async (err, user) => { // Giả sử findByEmail tìm được cả 2 hoặc dùng hàm riêng
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
+    const otp = helpers.generateOTP();
+    otpStore[identifier] = { otp, expiryTime: Date.now() + 10 * 60 * 1000 };
+
+    if (email) await sendOTPEmail(email, otp);
+    else helpers.sendOTPPhone(phone, otp);
+
+    res.json({ message: 'Mã OTP đã được gửi' });
+  });
+};
+
+// --- FORGOT PASSWORD: RESET ---
+exports.resetPassword = async (req, res) => {
+  const { email, phone, otp, newPassword } = req.body;
+  const identifier = email || phone;
+  const otpData = otpStore[identifier];
+
+  if (!otpData || otp !== otpData.otp || Date.now() > otpData.expiryTime) {
+    return res.status(400).json({ message: 'OTP không hợp lệ' });
   }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const sql = email ? 'UPDATE users SET password = ? WHERE email = ?' : 'UPDATE users SET password = ? WHERE phone = ?';
+
+  db.query(sql, [hashedPassword, identifier], (err) => {
+    if (err) return res.status(500).json({ message: 'Lỗi cập nhật' });
+    delete otpStore[identifier];
+    res.json({ message: 'Đặt lại mật khẩu thành công' });
+  });
 };

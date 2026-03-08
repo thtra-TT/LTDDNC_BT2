@@ -1,14 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const categoryController = require("../controllers/categoryController");
 
-router.get("/", (req, res) => {
-  const sql = "SELECT * FROM categories";
-
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ message: "Lỗi server" });
-    res.json(results);
-  });
-});
+// Định nghĩa đường dẫn
+router.get("/", categoryController.getAllCategories);
 
 module.exports = router;

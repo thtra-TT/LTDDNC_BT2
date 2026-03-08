@@ -1,3 +1,4 @@
+
 -- 1. Tạo database (nếu chưa có)
 CREATE DATABASE IF NOT EXISTS auth_app;
 USE auth_app;
@@ -172,3 +173,66 @@ VALUES
 UPDATE books
 SET cover_image = 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg'
 WHERE id > 0;
+
+
+ALTER TABLE categories ADD COLUMN image VARCHAR(255);
+
+-- Update dữ liệu mẫu cho có hình
+UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' WHERE id = 1; -- Văn học
+UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/3022/3022607.png' WHERE id = 2; -- Kinh tế
+UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/2920/2920329.png' WHERE id = 3; -- Công nghệ
+UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/427/427735.png'   WHERE id = 4; -- Thiếu nhi
+UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/11496/11496733.png' WHERE id = 5; -- Kỹ năng
+
+
+ALTER TABLE books ADD COLUMN original_price DECIMAL(10,2);
+
+-- Update giá gốc cao hơn giá bán (price) để tạo ra giảm giá
+UPDATE books SET original_price = price * 1.2 WHERE id > 0; 
+-- Ví dụ: Giá bán 100k, giá gốc set thành 120k => Giảm 20%
+
+
+-- Tạo dữ liệu bán hàng mẫu
+
+INSERT INTO orders (user_id, total, status) VALUES
+(1, 300000, 'completed'),
+(1, 450000, 'completed'),
+(1, 200000, 'completed'),
+(1, 150000, 'completed'),
+(1, 280000, 'completed'),
+(1, 500000, 'completed');
+
+INSERT INTO order_items (order_id, book_id, quantity, price) VALUES
+-- Order 1
+(1, 1, 5, 89000),       -- Đắc Nhân Tâm bán 5 cuốn
+(1, 3, 2, 79000),
+
+-- Order 2
+(2, 5, 4, 199000),      -- Sapiens bán 4 cuốn
+(2, 6, 1, 99000),
+
+-- Order 3
+(3, 4, 6, 65000),       -- Tớ Là Bêtô bán 6 cuốn
+
+-- Order 4
+(4, 2, 3, 150000),      -- Lập trình AI bán 3 cuốn
+
+-- Order 5
+(5, 1, 3, 89000),       -- Đắc Nhân Tâm bán thêm 3 cuốn → tổng 8
+
+-- Order 6
+(6, 5, 5, 199000);      -- Sapiens bán thêm 5 cuốn → tổng 9
+
+
+
+ALTER TABLE books ADD COLUMN original_price DECIMAL(10,2);
+UPDATE books SET original_price = price * 1.2 WHERE id > 0;
+
+UPDATE books SET original_price = price * 1.55 WHERE id = 1;  -- Đắc Nhân Tâm giảm 55%
+UPDATE books SET original_price = price * 1.40 WHERE id = 2;  -- Lập Trình AI giảm 40%
+UPDATE books SET original_price = price * 1.30 WHERE id = 3;  -- Tuổi Trẻ giảm 30%
+UPDATE books SET original_price = price * 1.50 WHERE id = 4;  -- Tớ Là Bêtô giảm 50%
+UPDATE books SET original_price = price * 1.20 WHERE id = 5;  -- Sapiens giảm 20%
+UPDATE books SET original_price = price * 1.10 WHERE id = 6;  -- Hành Trình giảm 10%
+
+
