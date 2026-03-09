@@ -2,7 +2,9 @@ const db = require('../config/db');
 
 // Lấy danh sách sách có tìm kiếm và lọc
 exports.getAllBooks = (req, res) => {
-  const { search, category } = req.query;
+  const { search, category, page = 1, limit = 20 } = req.query;
+
+  const offset = (page - 1) * limit;
 
   let sql = `
     SELECT b.id, b.title, b.description, b.price, b.stock, b.cover_image,
@@ -15,16 +17,19 @@ exports.getAllBooks = (req, res) => {
   `;
 
   const params = [];
+
   if (search) {
-    sql += ` AND b.title LIKE ?`;
+    sql += " AND b.title LIKE ?";
     params.push(`%${search}%`);
   }
+
   if (category) {
-    sql += ` AND b.category_id = ?`;
+    sql += " AND b.category_id = ?";
     params.push(category);
   }
 
-  sql += " ORDER BY b.id DESC";
+  sql += " ORDER BY b.id DESC LIMIT ? OFFSET ?";
+  params.push(Number(limit), Number(offset));
 
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ message: "Lỗi server", error: err });

@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  TextInput,
   Image,
   TouchableOpacity,
   ScrollView,
@@ -21,17 +20,28 @@ export default function HomeScreen({ navigation }: any) {
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState(null);
+
   const [bestSellers, setBestSellers] = useState([]);
   const [loadingBest, setLoadingBest] = useState(true);
+
   const [topDiscounts, setTopDiscounts] = useState([]);
   const [loadingDiscount, setLoadingDiscount] = useState(true);
 
+  const [allBooks, setAllBooks] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // ---------------------------
+  // LOAD SÁCH THEO DANH MỤC
+  // ---------------------------
   const loadBooks = async () => {
+    if (categoryFilter === null) return;
+
     setLoadingBooks(true);
 
     try {
-      let params: any = {};
-      if (categoryFilter) params.category = categoryFilter;
+      let params: any = { category: categoryFilter };
 
       const res = await api.get("/books", { params });
       setBooks(res.data);
@@ -46,6 +56,9 @@ export default function HomeScreen({ navigation }: any) {
     loadBooks();
   }, [categoryFilter]);
 
+  // ---------------------------
+  // LOAD DANH MỤC
+  // ---------------------------
   const loadCategories = async () => {
     try {
       const res = await api.get("/categories");
@@ -61,6 +74,9 @@ export default function HomeScreen({ navigation }: any) {
     loadCategories();
   }, []);
 
+  // ---------------------------
+  // LOAD BEST SELLERS
+  // ---------------------------
   const loadBestSellers = async () => {
     try {
       const res = await api.get("/books/best-sellers");
@@ -76,6 +92,9 @@ export default function HomeScreen({ navigation }: any) {
     loadBestSellers();
   }, []);
 
+  // ---------------------------
+  // LOAD TOP DISCOUNT
+  // ---------------------------
   const loadTopDiscounts = async () => {
     try {
       const res = await api.get("/books/top-discount?limit=20");
@@ -89,6 +108,42 @@ export default function HomeScreen({ navigation }: any) {
 
   useEffect(() => {
     loadTopDiscounts();
+  }, []);
+
+  // ---------------------------
+  // LOAD ALL BOOKS (lazy loading)
+  // ---------------------------
+  const loadAllBooks = async () => {
+    if (!hasMore || loadingMore) return;
+
+    setLoadingMore(true);
+
+    try {
+      const res = await api.get("/books", {
+        params: { page, limit: 20 },
+      });
+
+      if (res.data.length === 0) {
+        setHasMore(false);
+      } else {
+        setAllBooks((prev) => {
+          const newList = res.data.filter(
+            (item) => !prev.some((b) => b.id === item.id)
+          );
+          return [...prev, ...newList];
+        });
+
+        setPage((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.log("Lỗi tải tất cả sách:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAllBooks();
   }, []);
 
   return (
@@ -113,7 +168,6 @@ export default function HomeScreen({ navigation }: any) {
             Tri thức mới – Tương lai mới
           </Text>
 
-          {/* SEARCH */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => navigation.navigate("SearchScreen")}
@@ -176,7 +230,7 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* CATEGORIES */}
+        {/* --- CATEGORY LIST --- */}
         <Text
           style={{
             fontSize: 20,
@@ -234,7 +288,81 @@ export default function HomeScreen({ navigation }: any) {
           )}
         </ScrollView>
 
-        {/* BEST SELLERS */}
+        {/* --- BOOK LIST WHEN FILTERING BY CATEGORY --- */}
+        {categoryFilter && (
+          <>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                marginLeft: 20,
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              Sách thuộc danh mục
+            </Text>
+
+            {loadingBooks ? (
+              <Text style={{ marginLeft: 20 }}>Đang tải...</Text>
+            ) : (
+              <FlatList
+                data={books}
+                numColumns={2}
+                scrollEnabled={false}
+                keyExtractor={(item) => item.id.toString()}
+                columnWrapperStyle={{
+                  justifyContent: "space-between",
+                  paddingHorizontal: 20,
+                }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={{
+                      width: "48%",
+                      backgroundColor: "#fff",
+                      borderRadius: 12,
+                      padding: 12,
+                      marginBottom: 15,
+                    }}
+                    onPress={() =>
+                      navigation.navigate("BookDetail", { id: item.id })
+                    }
+                  >
+                    <Image
+                      source={{ uri: item.cover_image }}
+                      style={{
+                        width: "100%",
+                        height: 160,
+                        borderRadius: 10,
+                        marginBottom: 8,
+                      }}
+                    />
+
+                    <Text numberOfLines={2} style={{ fontWeight: "bold" }}>
+                      {item.title}
+                    </Text>
+
+                    <Text style={{ color: "#999", fontSize: 12 }}>
+                      {item.author_name}
+                    </Text>
+
+                    <Text
+                      style={{
+                        color: "#6C63FF",
+                        fontWeight: "bold",
+                        marginTop: 4,
+                      }}
+                    >
+                      {Number(item.price).toLocaleString("vi-VN")}đ
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </>
+        )}
+
+        {/* --- BEST SELLERS --- */}
         {!categoryFilter && (
           <>
             <View
@@ -256,10 +384,12 @@ export default function HomeScreen({ navigation }: any) {
               <FlatList
                 data={bestSellers}
                 horizontal
-                scrollEnabled={false}
                 keyExtractor={(item) => item.id.toString()}
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingLeft: 20, paddingVertical: 10 }}
+                contentContainerStyle={{
+                  paddingLeft: 20,
+                  paddingVertical: 10,
+                }}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={{
@@ -279,7 +409,10 @@ export default function HomeScreen({ navigation }: any) {
                       style={{ width: "100%", height: 140, borderRadius: 10 }}
                     />
 
-                    <Text style={{ fontWeight: "bold", marginTop: 6 }} numberOfLines={1}>
+                    <Text
+                      style={{ fontWeight: "bold", marginTop: 6 }}
+                      numberOfLines={1}
+                    >
                       {item.title}
                     </Text>
 
@@ -314,7 +447,7 @@ export default function HomeScreen({ navigation }: any) {
           </>
         )}
 
-        {/* TOP DISCOUNTS */}
+        {/* --- TOP DISCOUNTS --- */}
         <Text
           style={{
             fontSize: 20,
@@ -349,7 +482,9 @@ export default function HomeScreen({ navigation }: any) {
                   marginBottom: 15,
                   elevation: 3,
                 }}
-                onPress={() => navigation.navigate("BookDetail", { id: item.id })}
+                onPress={() =>
+                  navigation.navigate("BookDetail", { id: item.id })
+                }
               >
                 <Image
                   source={{ uri: item.cover_image }}
@@ -361,10 +496,7 @@ export default function HomeScreen({ navigation }: any) {
                   }}
                 />
 
-                <Text
-                  numberOfLines={2}
-                  style={{ fontWeight: "bold", fontSize: 14 }}
-                >
+                <Text numberOfLines={2} style={{ fontWeight: "bold" }}>
                   {item.title}
                 </Text>
 
@@ -412,6 +544,90 @@ export default function HomeScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
           />
+        )}
+
+        {/* --- ALL BOOKS (lazy loading) --- */}
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 20,
+            marginTop: 20,
+          }}
+        >
+          Tất cả sách
+        </Text>
+
+        <FlatList
+          data={allBooks}
+          numColumns={2}
+          scrollEnabled={false}
+          keyExtractor={(item) => item.id.toString()}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+          }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={{
+                width: "48%",
+                backgroundColor: "#fff",
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 15,
+              }}
+              onPress={() => navigation.navigate("BookDetail", { id: item.id })}
+            >
+              <Image
+                source={{ uri: item.cover_image }}
+                style={{
+                  width: "100%",
+                  height: 160,
+                  borderRadius: 12,
+                  marginBottom: 10,
+                }}
+              />
+
+              <Text numberOfLines={2} style={{ fontWeight: "bold" }}>
+                {item.title}
+              </Text>
+
+                <Text style={{ color: "#999", fontSize: 12 }}>
+                  {item.author_name}
+                </Text>
+
+                <Text
+                  style={{
+                    marginTop: 6,
+                    color: "#6C63FF",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                  }}
+                >
+                  {Number(item.price).toLocaleString("vi-VN")}đ
+                </Text>
+
+            </TouchableOpacity>
+          )}
+        />
+
+        {/* LOAD MORE */}
+        {hasMore && (
+          <TouchableOpacity
+            onPress={loadAllBooks}
+            style={{
+              backgroundColor: "#6C63FF",
+              paddingVertical: 12,
+              marginHorizontal: 20,
+              borderRadius: 12,
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>
+              {loadingMore ? "Đang tải..." : "Tải thêm"}
+            </Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </SafeAreaView>

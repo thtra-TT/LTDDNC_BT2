@@ -273,5 +273,316 @@ INSERT INTO order_items (order_id, book_id, quantity, price) VALUES
 (6, 5, 5, 199000);      -- Sapiens bán thêm 5 cuốn → tổng 9
 
 
+INSERT INTO books (title, description, price, stock, cover_image, category_id, author_id, publisher_id)
+VALUES
+('7 Thói Quen Hiệu Quả', 'Sách phát triển bản thân kinh điển giúp thay đổi tư duy.', 120000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086850677.jpg', 5, 2, 3),
+
+('Tư Duy Nhanh Và Chậm', 'Một trong những cuốn sách tâm lý học nổi tiếng nhất thế giới.', 180000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/9/7/9786048853366.jpg', 2, 3, 4),
+
+('Hạt Giống Tâm Hồn', 'Tập hợp những câu chuyện sâu sắc và ý nghĩa về cuộc sống.', 95000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/h/a/hat_giong_tam_hon_t12.jpg', 1, 5, 2),
+
+('Dám Nghĩ Lớn', 'Cuốn sách truyền cảm hứng mạnh mẽ cho thế hệ trẻ.', 99000, 35,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/a/damnghilon.jpg', 5, 2, 3),
+
+('Nghĩ Giàu Làm Giàu', 'Cẩm nang tài chính và tư duy làm giàu kinh điển.', 140000, 45,
+ 'https://cdn0.fahasa.com/media/catalog/product/8/9/8935086849275.jpg', 2, 2, 4),
+
+('Tập trung - Deep Work', 'Phương pháp làm việc hiệu quả trong thời đại xao nhãng.', 155000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/a/tap-trung-deep-work.jpg', 5, 4, 5),
+
+('Sống Tối Giản', 'Lối sống tối giản giúp cuộc sống nhẹ nhàng và thoải mái hơn.', 110000, 25,
+ 'https://cdn0.fahasa.com/media/catalog/product/s/o/songtoigian.jpg', 5, 5, 2),
+
+('Trí Tuệ Do Thái', 'Khám phá bí mật thành công của người Do Thái.', 160000, 20,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/r/trituedo.jpg', 2, 3, 4),
+
+('Lược Sử Vạn Vật', 'Giới thiệu lịch sử tự nhiên của nhân loại và vũ trụ.', 175000, 15,
+ 'https://cdn0.fahasa.com/media/catalog/product/l/u/luoc-su-van-vat.jpg', 2, 3, 4),
+
+('Vũ Trụ Trong Vỏ Hạt Dẻ', 'Khám phá khoa học vũ trụ theo cách dễ hiểu.', 200000, 20,
+ 'https://cdn0.fahasa.com/media/catalog/product/v/u/vututrongvohatde.jpg', 3, 4, 5),
+
+('Kỹ Năng Giao Tiếp', 'Hướng dẫn nâng cao khả năng giao tiếp mọi hoàn cảnh.', 95000, 60,
+ 'https://cdn0.fahasa.com/media/catalog/product/k/y/kynanggiaotiep.jpg', 5, 2, 3),
+
+('Lão Hạc', 'Tác phẩm văn học kinh điển của Việt Nam.', 65000, 100,
+ 'https://cdn0.fahasa.com/media/catalog/product/l/a/laohac.jpg', 1, 5, 1),
+
+('Tắt Đèn', 'Tác phẩm văn học hiện thực sâu sắc của Ngô Tất Tố.', 59000, 75,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/a/tatden.jpg', 1, 5, 1),
+
+('Dế Mèn Phiêu Lưu Ký', 'Tác phẩm thiếu nhi nổi tiếng.', 72000, 80,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/e/demen.jpg', 4, 1, 1),
+
+('Alice Ở Xứ Sở Thần Tiên', 'Cuộc phiêu lưu kỳ ảo dành cho thiếu nhi.', 85000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/a/l/alice.jpg', 4, 1, 1),
+
+('Bách Khoa Thiếu Nhi', 'Sách kiến thức dành cho trẻ nhỏ.', 99000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/b/a/bachkhoathieunhi.jpg', 4, 1, 1),
+
+('Lập Trình Web Cơ Bản', 'Hướng dẫn lập trình web cho người mới bắt đầu.', 149000, 30,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Machine Learning 101', 'Giới thiệu nền tảng học máy.', 180000, 20,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Cơ Sở Dữ Liệu SQL', 'Kiến thức SQL căn bản đến nâng cao.', 135000, 25,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Cấu Trúc Dữ Liệu & Giải Thuật', 'Sách Tin Học kinh điển.', 155000, 35,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Lập Trình Python', 'Sách học Python cơ bản.', 149000, 45,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Lập Trình Java', 'Tài liệu Java cho sinh viên CNTT.', 159000, 50,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Lập Trình C++', 'Tài liệu học C++ từ cơ bản đến nâng cao.', 142000, 50,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Thiết Kế UI/UX', 'Hướng dẫn tư duy thiết kế sản phẩm.', 168000, 20,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Hệ Điều Hành', 'Sách về cơ chế hoạt động hệ điều hành.', 175000, 25,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Mạng Máy Tính', 'Giới thiệu mạng căn bản cho sinh viên.', 160000, 30,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Điện Toán Đám Mây', 'Kiến thức Cloud cơ bản.', 170000, 25,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Thuật Toán Ứng Dụng', 'Tổng hợp thuật toán quan trọng.', 165000, 20,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg', 3, 4, 5),
+
+('Google Marketing', 'Hướng dẫn chạy quảng cáo hiệu quả.', 139000, 35,
+ 'https://cdn0.fahasa.com/media/catalog/product/g/o/google-marketing.jpg', 2, 2, 4),
+
+('Tài Chính Cá Nhân 101', 'Hướng dẫn quản lý tài chính cho người trẻ.', 125000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/a/taichinhcanhan.jpg', 2, 2, 4);
+
+
+
+
+
+
+
+INSERT INTO books (title, description, price, stock, cover_image, category_id, author_id, publisher_id)
+VALUES
+-- 1
+('Tâm Lý Học Hành Vi',
+ 'Cuốn sách giải thích cách con người ra quyết định.',
+ 165000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/a/tam-ly-hoc-hanh-vi.jpg',
+ 2, 3, 4),
+
+-- 2
+('Chiến Binh Cầu Vồng',
+ 'Câu chuyện cảm động về nghị lực và ước mơ.',
+ 95000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/c/h/chien_binh_cau_vong.jpg',
+ 1, 5, 2),
+
+-- 3
+('Nhà Giả Kim',
+ 'Tác phẩm nổi tiếng của Paulo Coelho truyền cảm hứng.',
+ 89000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/n/h/nha_gia_kim.jpg',
+ 1, 5, 2),
+
+-- 4
+('Những Đòn Tâm Lý Trong Thuyết Phục',
+ 'Tâm lý học ứng dụng vào giao tiếp và thuyết phục.',
+ 135000, 35,
+ 'https://cdn0.fahasa.com/media/catalog/product/n/h/nhung-don-tam-ly-trong-thuyet-phuc.jpg',
+ 5, 2, 3),
+
+-- 5
+('Kỷ Luật Bản Thân',
+ 'Bí quyết tự phát triển bản thân bền vững.',
+ 115000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/k/y/ky-luat-ban-than.jpg',
+ 5, 2, 3),
+
+-- 6
+('Đừng Chạy Theo Số Đông',
+ 'Sách phát triển tư duy cá nhân trong xã hội hiện đại.',
+ 99000, 45,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/u/dung-chay-theo-so-dong.jpg',
+ 5, 2, 3),
+
+-- 7
+('Ngày Xưa Có Một Chuyện Tình',
+ 'Tác phẩm lãng mạn của Nguyễn Nhật Ánh.',
+ 65000, 60,
+ 'https://cdn0.fahasa.com/media/catalog/product/n/g/ngay_xua_co_mot_chuyen_tinh.jpg',
+ 1, 1, 1),
+
+-- 8
+('Bí Mật Tư Duy Triệu Phú',
+ 'Cuốn sách giúp thay đổi tư duy tài chính.',
+ 150000, 35,
+ 'https://cdn0.fahasa.com/media/catalog/product/b/i/bi_mat_tu_duy_trieu_phu.jpg',
+ 2, 2, 4),
+
+-- 9
+('Sức Mạnh Của Thói Quen',
+ 'Một trong những cuốn sách tâm lý nổi tiếng nhất.',
+ 160000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/s/u/suc-manh-cua-thoi-quen.jpg',
+ 5, 2, 3),
+
+-- 10
+('Think And Grow Rich',
+ 'Tác phẩm kinh điển về tư duy làm giàu.',
+ 140000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/t/h/think_and_grow_rich.jpg',
+ 2, 2, 4),
+
+-- 11
+('Đi Tìm Lẽ Sống',
+ 'Cuốn sách đầy tính nhân văn và triết lý.',
+ 120000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/i/di_tim_le_song.jpg',
+ 1, 5, 2),
+
+-- 12
+('Doraemon Truyện Dài - Nobita Và Nước Nhật Thời Nguyên Thủy',
+ 'Chuyến phiêu lưu thú vị cùng Nobita.',
+ 85000, 80,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/o/doraemon-nuoc-nhat.jpg',
+ 4, 1, 1),
+
+-- 13
+('Làm Chủ Tư Duy, Thay Đổi Vận Mệnh',
+ 'Bí mật thành công của hàng triệu người.',
+ 110000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/l/a/lam_chu_tu_duy_thay_doi_van_menh.jpg',
+ 5, 2, 3),
+
+-- 14
+('IELTS Vocabulary',
+ 'Tài liệu học từ vựng IELTS hiệu quả.',
+ 180000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/i/e/ielts-vocabulary.jpg',
+ 3, 4, 5),
+
+-- 15
+('Cambridge Grammar',
+ 'Sách ngữ pháp chuẩn quốc tế.',
+ 190000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/c/a/cambridge_grammar.jpg',
+ 3, 4, 5),
+
+-- 16
+('Sherlock Holmes Toàn Tập',
+ 'Tuyển tập trinh thám nổi tiếng toàn thế giới.',
+ 220000, 25,
+ 'https://cdn0.fahasa.com/media/catalog/product/s/h/sherlock-holmes.jpg',
+ 1, 5, 2),
+
+-- 17
+('Harry Potter Và Hòn Đá Phù Thủy',
+ 'Phần đầu series Harry Potter.',
+ 175000, 40,
+ 'https://cdn0.fahasa.com/media/catalog/product/h/a/harry_potter_tap_1.jpg',
+ 1, 5, 2),
+
+-- 18
+('One Piece – Tập 1',
+ 'Hành trình trở thành Vua Hải Tặc của Luffy.',
+ 45000, 120,
+ 'https://cdn0.fahasa.com/media/catalog/product/o/n/one_piece_1.jpg',
+ 4, 1, 1),
+
+-- 19
+('Dragon Ball Super – Tập 1',
+ 'Cuộc chiến mới của Goku.',
+ 45000, 100,
+ 'https://cdn0.fahasa.com/media/catalog/product/d/r/dragon-ball-super-1.jpg',
+ 4, 1, 1),
+
+-- 20
+('Lập Trình React Native',
+ 'Tài liệu học React Native cho người mới.',
+ 159000, 35,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 21
+('Laravel Cơ Bản',
+ 'Hướng dẫn lập trình web backend bằng Laravel.',
+ 149000, 40,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 22
+('Node.js Cho Người Mới Bắt Đầu',
+ 'Học backend Node.js từ zero.',
+ 145000, 45,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 23
+('Thuật Toán Lập Trình Hiện Đại',
+ 'Sách nâng cao dành cho dân CNTT.',
+ 175000, 25,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 24
+('Unity 3D Game Development',
+ 'Tự học làm game với Unity.',
+ 165000, 35,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 25
+('Photoshop Căn Bản',
+ 'Tự học Photoshop cho người mới.',
+ 135000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/p/h/photoshop.jpg',
+ 3, 4, 5),
+
+-- 26
+('Illustrator Cho Designer',
+ 'Học thiết kế với AI.',
+ 145000, 50,
+ 'https://cdn0.fahasa.com/media/catalog/product/i/l/illustrator.jpg',
+ 3, 4, 5),
+
+-- 27
+('Cẩm Nang UX/UI',
+ 'Hướng dẫn đầy đủ về thiết kế giao diện.',
+ 170000, 30,
+ 'https://cdn0.fahasa.com/media/catalog/product/u/x/ux-ui.jpg',
+ 3, 4, 5),
+
+-- 28
+('Lập Trình Frontend Cho Người Mới',
+ 'HTML, CSS, JS từ cơ bản tới nâng cao.',
+ 150000, 40,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5),
+
+-- 29
+('Blockchain Cơ Bản',
+ 'Khái niệm blockchain cho sinh viên.',
+ 165000, 20,
+ 'https://cdn0.fahasa.com/media/catalog/product/b/l/blockchain.jpg',
+ 3, 4, 5),
+
+-- 30
+('Khoa Học Máy Tính 101',
+ 'Tổng hợp các kiến thức nền tảng Computer Science.',
+ 175000, 25,
+ 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
+ 3, 4, 5);
+
+
 
 
