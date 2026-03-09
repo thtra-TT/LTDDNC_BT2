@@ -51,23 +51,36 @@ exports.addAddress = (req, res) => {
   }
 };
 
-// 3. CẬP NHẬT
+// 3. CẬP NHẬT ĐỊA CHỈ
 exports.updateAddress = (req, res) => {
   const { id } = req.params;
   const { userId, recipient_name, phone_number, province, district, ward, specific_address, is_default } = req.body;
 
+  // Hàm thực hiện cập nhật chính
   const performUpdate = () => {
-    const sql = `UPDATE shipping_addresses SET recipient_name=?, phone_number=?, province=?, district=?, ward=?, specific_address=?, is_default=? WHERE id=? AND user_id=?`;
-    db.query(sql, [recipient_name, phone_number, province, district, ward, specific_address, is_default ? 1 : 0, id, userId], (err) => {
-      if (err) return res.status(500).json({ error: err });
+    const sql = `UPDATE shipping_addresses
+                 SET recipient_name=?, phone_number=?, province=?, district=?, ward=?, specific_address=?, is_default=?
+                 WHERE id=? AND user_id=?`;
+
+    const values = [recipient_name, phone_number, province, district, ward, specific_address, is_default ? 1 : 0, id, userId];
+
+    db.query(sql, values, (err, result) => {
+      if (err) return res.status(500).json({ error: "Lỗi cơ sở dữ liệu khi cập nhật" });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy địa chỉ để cập nhật" });
+
       res.json({ message: "Cập nhật thành công" });
     });
   };
 
+  // Nếu người dùng chọn địa chỉ này làm mặc định (is_default = true)
   if (is_default) {
-    db.query("UPDATE addresses SET is_default = 0 WHERE user_id = ?", [userId], performUpdate);
+    const resetSql = "UPDATE shipping_addresses SET is_default = 0 WHERE user_id = ?";
+    db.query(resetSql, [userId], (err) => {
+      if (err) return res.status(500).json({ error: "Lỗi khi đặt lại địa chỉ mặc định" });
+      performUpdate(); // Gọi đúng tên hàm ở đây
+    });
   } else {
-    performUpdate();
+    performUpdate(); // Gọi đúng tên hàm ở đây
   }
 };
 
