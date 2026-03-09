@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { sendOTPEmail } = require("../config/email");
-const db = require("../db");
+const db = require('../config/db');
 
 // Lấy thông tin người dùng
 exports.getProfile = (req, res) => {

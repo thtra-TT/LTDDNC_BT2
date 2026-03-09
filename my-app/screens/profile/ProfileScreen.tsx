@@ -104,8 +104,9 @@ export default function ProfileScreen() {
         {/* MENU */}
         <View style={styles.menuCard}>
           <MenuItem icon="lock-closed-outline" text="Đổi mật khẩu" onPress={() => navigation.navigate("ChangePassword")} />
+          <MenuItem icon="lock-closed-outline" text="Giỏ hàng của tôi" onPress={() => navigation.navigate("Cart")} />
           <MenuItem icon="reader-outline" text="Đơn hàng của tôi" />
-          <MenuItem icon="location-outline" text="Địa chỉ nhận hàng" />
+          <MenuItem icon="location-outline" text="Địa chỉ nhận hàng"  onPress={() => navigation.navigate("Address")} />
           <MenuItem icon="notifications-outline" text="Thông báo" />
           <MenuItem icon="help-buoy-outline" text="Trung tâm hỗ trợ" />
           <MenuItem icon="settings-outline" text="Cài đặt" noBorder />

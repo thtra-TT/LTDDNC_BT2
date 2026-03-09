@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import { FlatList } from "react-native";
 
-
 export default function HomeScreen({ navigation }: any) {
   const { user } = useAuth();
 
@@ -21,68 +20,31 @@ export default function HomeScreen({ navigation }: any) {
   const [categories, setCategories] = useState([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
-  const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggest, setShowSuggest] = useState(false);
   const [bestSellers, setBestSellers] = useState([]);
   const [loadingBest, setLoadingBest] = useState(true);
   const [topDiscounts, setTopDiscounts] = useState([]);
   const [loadingDiscount, setLoadingDiscount] = useState(true);
 
+  const loadBooks = async () => {
+    setLoadingBooks(true);
 
+    try {
+      let params: any = {};
+      if (categoryFilter) params.category = categoryFilter;
 
-  const formatPrice = (price) => {
-    return Number(price).toLocaleString("vi-VN") + " VNĐ";
+      const res = await api.get("/books", { params });
+      setBooks(res.data);
+    } catch (err) {
+      console.log("Lỗi load sách:", err);
+    } finally {
+      setLoadingBooks(false);
+    }
   };
 
-
-
-
-    const loadBooks = async () => {
-      setLoadingBooks(true);
-
-      try {
-        let params: any = {};
-
-        if (categoryFilter) {
-          params.category = categoryFilter;
-        }
-        else if (search.trim() !== "") {
-          params.search = search;
-        }
-
-        const res = await api.get("/books", { params });
-        setBooks(res.data);
-
-      } catch (err) {
-        console.log("Lỗi load sách:", err);
-      } finally {
-        setLoadingBooks(false);
-      }
-    };
-
-    const loadSuggestions = async (text) => {
-      if (text.trim() === "") {
-        setSuggestions([]);
-        setShowSuggest(false);
-        return;
-      }
-
-      try {
-        const res = await api.get("/books", {
-          params: { search: text }
-        });
-
-        // Chỉ lấy 5 gợi ý
-        setSuggestions(res.data.slice(0, 5));
-        setShowSuggest(true);
-      } catch (err) {
-        console.log("Lỗi gợi ý:", err);
-      }
-    };
-
-
+  useEffect(() => {
+    loadBooks();
+  }, [categoryFilter]);
 
   const loadCategories = async () => {
     try {
@@ -95,51 +57,44 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-    useEffect(() => {
-      loadBooks();
-    }, [search, categoryFilter]);
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-    useEffect(() => {
-      loadCategories();
-    }, []);
+  const loadBestSellers = async () => {
+    try {
+      const res = await api.get("/books/best-sellers");
+      setBestSellers(res.data);
+    } catch (err) {
+      console.log("Lỗi load best sellers:", err);
+    } finally {
+      setLoadingBest(false);
+    }
+  };
 
+  useEffect(() => {
+    loadBestSellers();
+  }, []);
 
-    const loadBestSellers = async () => {
-      try {
-        const res = await api.get("/books/best-sellers");
-        setBestSellers(res.data);
-      } catch (err) {
-        console.log("Lỗi load best sellers:", err);
-      } finally {
-        setLoadingBest(false);
-      }
-    };
+  const loadTopDiscounts = async () => {
+    try {
+      const res = await api.get("/books/top-discount?limit=20");
+      setTopDiscounts(res.data);
+    } catch (err) {
+      console.log("Lỗi load top discounts:", err);
+    } finally {
+      setLoadingDiscount(false);
+    }
+  };
 
-    useEffect(() => {
-      loadBestSellers();
-    }, []);
-
-
-    const loadTopDiscounts = async () => {
-      try {
-        const res = await api.get("/books/top-discount?limit=20");
-        setTopDiscounts(res.data);
-      } catch (err) {
-        console.log("Lỗi load top discounts:", err);
-      } finally {
-        setLoadingDiscount(false);
-      }
-    };
-
-    useEffect(() => {
-      loadTopDiscounts();
-    }, []);
-
-
+  useEffect(() => {
+    loadTopDiscounts();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <ScrollView showsVerticalScrollIndicator={false}>
+
         {/* HEADER */}
         <View
           style={{
@@ -153,12 +108,15 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={{ color: "#fff", fontSize: 26, fontWeight: "bold" }}>
             UTE Book Store
           </Text>
+
           <Text style={{ color: "#eee", marginBottom: 12 }}>
             Tri thức mới – Tương lai mới
           </Text>
 
           {/* SEARCH */}
-          <View
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("SearchScreen")}
             style={{
               flexDirection: "row",
               backgroundColor: "#fff",
@@ -169,54 +127,11 @@ export default function HomeScreen({ navigation }: any) {
             }}
           >
             <Ionicons name="search" size={20} color="#666" />
-                <TextInput
-                  placeholder="Tìm kiếm sách..."
-                  style={{ marginLeft: 10, flex: 1 }}
-                  placeholderTextColor="#999"
-                  value={search}
-                  onChangeText={(text) => {
-                    setSearch(text);
-                    loadSuggestions(text);
-                  }}
-                  onSubmitEditing={() => {
-                    navigation.navigate("SearchResult", { keyword: search });
-                    setShowSuggest(false);
-                  }}
-                />
-
-
-          </View>
-            </View>
-            {showSuggest && suggestions.length > 0 && (
-              <View
-                style={{
-                  backgroundColor: "#fff",
-                  marginTop: 5,
-                  borderRadius: 10,
-                  padding: 10,
-                  elevation: 5,
-                }}
-              >
-                {suggestions.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                        onPress={() => {
-                          navigation.navigate("SearchResult", { query: item.title });
-                          setShowSuggest(false);
-                        }}
-
-                    style={{
-                      paddingVertical: 8,
-                      borderBottomWidth: 0.5,
-                      borderColor: "#eee",
-                    }}
-                  >
-                    <Text style={{ fontSize: 14 }}>{item.title}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
+            <Text style={{ marginLeft: 10, color: "#999" }}>
+              Tìm kiếm sách...
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* BANNER */}
         <View
@@ -230,6 +145,7 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
             FLASH SALE
           </Text>
+
           <Text
             style={{
               color: "#fff",
@@ -240,6 +156,7 @@ export default function HomeScreen({ navigation }: any) {
           >
             Giảm đến 50%
           </Text>
+
           <Text style={{ color: "#fff", marginBottom: 10 }}>
             Áp dụng cho sinh viên UTE
           </Text>
@@ -259,7 +176,7 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* DANH MỤC */}
+        {/* CATEGORIES */}
         <Text
           style={{
             fontSize: 20,
@@ -280,44 +197,44 @@ export default function HomeScreen({ navigation }: any) {
             <Text>Đang tải...</Text>
           ) : (
             categories.map((cat: any) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => {
-                    if (categoryFilter === cat.id) setCategoryFilter(null);
-                    else setCategoryFilter(cat.id);
-                  }}
+              <TouchableOpacity
+                key={cat.id}
+                onPress={() => {
+                  if (categoryFilter === cat.id) setCategoryFilter(null);
+                  else setCategoryFilter(cat.id);
+                }}
+                style={{
+                  backgroundColor:
+                    categoryFilter === cat.id ? "#6C63FF" : "#fff",
+                  width: 80,
+                  height: 80,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginRight: 15,
+                  borderRadius: 16,
+                  elevation: 3,
+                }}
+              >
+                <Ionicons
+                  name="book-outline"
+                  size={26}
+                  color={categoryFilter === cat.id ? "#fff" : "#6C63FF"}
+                />
+                <Text
                   style={{
-                    backgroundColor: categoryFilter === cat.id ? "#6C63FF" : "#fff",
-                    width: 80,
-                    height: 80,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginRight: 15,
-                    borderRadius: 16,
-                    elevation: 3,
+                    marginTop: 5,
+                    fontSize: 12,
+                    color: categoryFilter === cat.id ? "#fff" : "#000",
                   }}
                 >
-                  <Ionicons
-                    name="book-outline"
-                    size={26}
-                    color={categoryFilter === cat.id ? "#fff" : "#6C63FF"}
-                  />
-                  <Text
-                    style={{
-                      marginTop: 5,
-                      fontSize: 12,
-                      color: categoryFilter === cat.id ? "#fff" : "#000",
-                    }}
-                  >
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-
+                  {cat.name}
+                </Text>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
 
-        {/* TOP 10 BÁN CHẠY – chỉ hiển thị khi KHÔNG lọc danh mục */}
+        {/* BEST SELLERS */}
         {!categoryFilter && (
           <>
             <View
@@ -339,6 +256,7 @@ export default function HomeScreen({ navigation }: any) {
               <FlatList
                 data={bestSellers}
                 horizontal
+                scrollEnabled={false}
                 keyExtractor={(item) => item.id.toString()}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingLeft: 20, paddingVertical: 10 }}
@@ -352,7 +270,9 @@ export default function HomeScreen({ navigation }: any) {
                       marginRight: 15,
                       elevation: 3,
                     }}
-                    onPress={() => navigation.navigate("BookDetail", { id: item.id })}
+                    onPress={() =>
+                      navigation.navigate("BookDetail", { id: item.id })
+                    }
                   >
                     <Image
                       source={{ uri: item.cover_image }}
@@ -394,7 +314,7 @@ export default function HomeScreen({ navigation }: any) {
           </>
         )}
 
-        {/* 20 SẢN PHẨM GIẢM GIÁ CAO NHẤT */}
+        {/* TOP DISCOUNTS */}
         <Text
           style={{
             fontSize: 20,
@@ -413,8 +333,12 @@ export default function HomeScreen({ navigation }: any) {
           <FlatList
             data={topDiscounts}
             numColumns={2}
+            scrollEnabled={false}
             keyExtractor={(item) => item.id.toString()}
-            columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 20 }}
+            columnWrapperStyle={{
+              justifyContent: "space-between",
+              paddingHorizontal: 20,
+            }}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={{
@@ -437,7 +361,10 @@ export default function HomeScreen({ navigation }: any) {
                   }}
                 />
 
-                <Text numberOfLines={2} style={{ fontWeight: "bold", fontSize: 14 }}>
+                <Text
+                  numberOfLines={2}
+                  style={{ fontWeight: "bold", fontSize: 14 }}
+                >
                   {item.title}
                 </Text>
 
@@ -476,7 +403,9 @@ export default function HomeScreen({ navigation }: any) {
                     marginTop: 5,
                   }}
                 >
-                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}>
+                  <Text
+                    style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}
+                  >
                     -{Math.round(item.discount_percent)}%
                   </Text>
                 </View>
@@ -484,7 +413,6 @@ export default function HomeScreen({ navigation }: any) {
             )}
           />
         )}
-
       </ScrollView>
     </SafeAreaView>
   );

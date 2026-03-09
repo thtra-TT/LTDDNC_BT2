@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
-const db = require('../db');
+const db = require('../config/db');
 const { sendOTPEmail } = require('../config/email');
 const { generateToken } = require('../config/jwt');
 const helpers = require('../utils/authHelpers');

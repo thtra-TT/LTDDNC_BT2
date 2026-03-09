@@ -12,13 +12,13 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../services/api";
 
 export default function SearchResultScreen({ route, navigation }) {
-  const { query } = route.params;
+  const { keyword } = route.params;
 
-  const [searchText, setSearchText] = useState(query);
+  const [searchText, setSearchText] = useState(keyword);
   const [books, setBooks] = useState([]);
 
   // Bộ lọc
-  const [sort, setSort] = useState("relevant"); // relevant | low-high | high-low | newest | bestseller
+  const [sort, setSort] = useState("relevant");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   const sortOptions = [
@@ -29,13 +29,16 @@ export default function SearchResultScreen({ route, navigation }) {
     { key: "bestseller", label: "Bán chạy nhất" },
   ];
 
-  const load = async () => {
+  const formatPrice = (p) => Number(p).toLocaleString("vi-VN") + "đ";
+
+  // Load dữ liệu
+  const loadData = async () => {
     try {
       const res = await api.get("/books", {
         params: { search: searchText },
       });
 
-      let data = res.data;
+      let data = [...res.data];
 
       if (sort === "low-high") data.sort((a, b) => a.price - b.price);
       if (sort === "high-low") data.sort((a, b) => b.price - a.price);
@@ -43,12 +46,18 @@ export default function SearchResultScreen({ route, navigation }) {
 
       setBooks(data);
     } catch (err) {
-      console.log("Lỗi tải danh sách:", err);
+      console.log("Lỗi load search result:", err);
     }
   };
 
+  // Khi đổi từ khóa → load lại
   useEffect(() => {
-    load();
+    setSearchText(keyword);
+  }, [keyword]);
+
+  // Khi searchText hoặc sort thay đổi
+  useEffect(() => {
+    loadData();
   }, [searchText, sort]);
 
   return (
@@ -71,46 +80,17 @@ export default function SearchResultScreen({ route, navigation }) {
             style={{ flex: 1, marginLeft: 10 }}
             placeholder="Tìm tên sách, tác giả..."
             value={searchText}
-            onChangeText={setSearchText}
+            onChangeText={(t) => setSearchText(t)}
+            onSubmitEditing={loadData}
           />
 
-          <TouchableOpacity onPress={load}>
+          <TouchableOpacity onPress={loadData}>
             <Ionicons name="arrow-forward-circle" size={26} color="#6C63FF" />
           </TouchableOpacity>
         </View>
 
-        {/* TAG FILTER */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginLeft: 16 }}
-        >
-          {["Bán chạy", "Đánh giá cao", "Mới nhất", "Sale"].map((t, i) => (
-            <TouchableOpacity
-              key={i}
-              style={{
-                backgroundColor: i === 0 ? "#6C63FF" : "#eee",
-                paddingVertical: 6,
-                paddingHorizontal: 14,
-                borderRadius: 20,
-                marginRight: 10,
-              }}
-            >
-              <Text style={{ color: i === 0 ? "#fff" : "#444", fontSize: 13 }}>
-                {t}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
         {/* SORT DROPDOWN */}
-        <View
-          style={{
-            marginTop: 15,
-            marginRight: 16,
-            alignItems: "flex-end",
-          }}
-        >
+        <View style={{ marginTop: 5, marginRight: 16, alignItems: "flex-end" }}>
           <TouchableOpacity
             onPress={() => setShowSortDropdown(!showSortDropdown)}
             style={{
@@ -175,7 +155,10 @@ export default function SearchResultScreen({ route, navigation }) {
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
           scrollEnabled={false}
-          columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 16 }}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: 16,
+          }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={{
@@ -185,9 +168,7 @@ export default function SearchResultScreen({ route, navigation }) {
                 padding: 10,
                 marginTop: 16,
               }}
-              onPress={() =>
-                navigation.navigate("BookDetail", { id: item.id })
-              }
+              onPress={() => navigation.navigate("BookDetail", { id: item.id })}
             >
               <Image
                 source={{ uri: item.cover_image }}
@@ -216,7 +197,7 @@ export default function SearchResultScreen({ route, navigation }) {
                   marginTop: 6,
                 }}
               >
-                {item.price}đ
+                {formatPrice(item.price)}
               </Text>
             </TouchableOpacity>
           )}

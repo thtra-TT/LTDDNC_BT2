@@ -5,6 +5,7 @@ import RegisterScreen from "../screens/register";
 import ForgotPasswordScreen from "../screens/forgot-password";
 // import HomeScreen from "../screens/home";
 import WelcomeScreen from "../screens/welcome";
+import SearchScreen from "../screens/SearchScreen";
 
 import TabNavigator from "./TabNavigator";
 
@@ -13,9 +14,15 @@ import TabNavigator from "./TabNavigator";
 import EditInfoScreen from "../screens/profile/EditInfoScreen";
 import ChangePasswordScreen from "../screens/profile/ChangePasswordScreen";
 import ChangeEmailScreen from "../screens/profile/ChangeEmailScreen";
+import CartScreen from "../screens/profile/CartScreen";
 
 import BookDetailScreen from "../screens/BookDetail";
 import SearchResultScreen from "../screens/SearchResultScreen";
+
+import AddressScreen from "../screens/profile/AddressList";
+import AddressFormScreen from "../screens/profile/AddressForm";
+import CheckoutScreen from "../screens/profile/CheckoutScreen";
+
 
 
 const Stack = createNativeStackNavigator();
@@ -36,7 +43,11 @@ export default function AppNavigator() {
       <Stack.Screen name="EditInfo" component={EditInfoScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
-
+      <Stack.Screen name="Cart" component={CartScreen} />
+      <Stack.Screen name="Address" component={AddressScreen} />
+      <Stack.Screen name="AddressForm" component={AddressFormScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="SearchScreen" component={SearchScreen} />
       <Stack.Screen name="BookDetail" component={BookDetailScreen} />
       <Stack.Screen name="SearchResult" component={SearchResultScreen} />
 

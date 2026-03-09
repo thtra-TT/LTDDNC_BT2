@@ -6,25 +6,24 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
-
     "extra": {
-      "API_URL": "http://172.16.0.249:3000/api",
-      "BASE_URL": "http://172.16.0.249:3000"
+      "API_URL": "http://192.168.1.6:3000/api",
+      "BASE_URL": "http://192.168.1.6:3000"
     },
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       }
     },
-
     "web": {
       "favicon": "./assets/images/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }

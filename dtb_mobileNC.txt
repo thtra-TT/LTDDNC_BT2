@@ -1,5 +1,6 @@
 
--- 1. Tạo database (nếu chưa có)
+    
+    -- 1. Tạo database (nếu chưa có)
 CREATE DATABASE IF NOT EXISTS auth_app;
 USE auth_app;
 
@@ -174,22 +175,70 @@ UPDATE books
 SET cover_image = 'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg'
 WHERE id > 0;
 
+USE auth_app;
+-- ==========================================================
+-- 1. TẠO BẢNG ĐỊA CHỈ GIAO HÀNG (SHIPPING ADDRESSES)
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS shipping_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    recipient_name VARCHAR(120) NOT NULL,    -- Tên người nhận (có thể khác tên user)
+    phone_number VARCHAR(20) NOT NULL,       -- SĐT nhận hàng riêng cho địa chỉ này
+    province VARCHAR(100) NOT NULL,          -- Tỉnh/Thành phố
+    district VARCHAR(100) NOT NULL,          -- Quận/Huyện
+    ward VARCHAR(100),                       -- Phường/Xã
+    specific_address VARCHAR(255) NOT NULL,  -- Số nhà, tên đường
+    is_default BOOLEAN DEFAULT FALSE,        -- Địa chỉ mặc định
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-ALTER TABLE categories ADD COLUMN image VARCHAR(255);
+-- ==========================================================
+-- 2. TẠO BẢNG GIỎ HÀNG (CART)
+-- ==========================================================
+-- Bảng này đóng vai trò là "giỏ" chính của mỗi User
+CREATE TABLE IF NOT EXISTS carts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,             -- Mỗi user chỉ có 1 giỏ hàng
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
--- Update dữ liệu mẫu cho có hình
-UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' WHERE id = 1; -- Văn học
-UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/3022/3022607.png' WHERE id = 2; -- Kinh tế
-UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/2920/2920329.png' WHERE id = 3; -- Công nghệ
-UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/427/427735.png'   WHERE id = 4; -- Thiếu nhi
-UPDATE categories SET image = 'https://cdn-icons-png.flaticon.com/512/11496/11496733.png' WHERE id = 5; -- Kỹ năng
+-- Bảng chi tiết các món đồ trong giỏ
+CREATE TABLE IF NOT EXISTS cart_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cart_id INT NOT NULL,
+    book_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+);
+
+-- ==========================================================
+-- 3. NÂNG CẤP BẢNG ORDERS (ĐỂ LƯU ĐỊA CHỈ KHI ĐẶT HÀNG)
+-- ==========================================================
+ALTER TABLE orders 
+ADD COLUMN note VARCHAR(500),
+ADD COLUMN shipping_address_id INT AFTER user_id,
+ADD COLUMN payment_method VARCHAR(50) DEFAULT 'COD',
+ADD COLUMN shipping_fee DECIMAL(10,2) DEFAULT 0.00,
+ADD CONSTRAINT fk_order_shipping FOREIGN KEY (shipping_address_id) REFERENCES shipping_addresses(id);
+
 
 
 ALTER TABLE books ADD COLUMN original_price DECIMAL(10,2);
+UPDATE books SET original_price = price * 1.2 WHERE id > 0;
 
--- Update giá gốc cao hơn giá bán (price) để tạo ra giảm giá
-UPDATE books SET original_price = price * 1.2 WHERE id > 0; 
--- Ví dụ: Giá bán 100k, giá gốc set thành 120k => Giảm 20%
+UPDATE books SET original_price = price * 1.55 WHERE id = 1;  -- Đắc Nhân Tâm giảm 55%
+UPDATE books SET original_price = price * 1.40 WHERE id = 2;  -- Lập Trình AI giảm 40%
+UPDATE books SET original_price = price * 1.30 WHERE id = 3;  -- Tuổi Trẻ giảm 30%
+UPDATE books SET original_price = price * 1.50 WHERE id = 4;  -- Tớ Là Bêtô giảm 50%
+UPDATE books SET original_price = price * 1.20 WHERE id = 5;  -- Sapiens giảm 20%
+UPDATE books SET original_price = price * 1.10 WHERE id = 6;  -- Hành Trình giảm 10%
 
 
 -- Tạo dữ liệu bán hàng mẫu
@@ -224,15 +273,5 @@ INSERT INTO order_items (order_id, book_id, quantity, price) VALUES
 (6, 5, 5, 199000);      -- Sapiens bán thêm 5 cuốn → tổng 9
 
 
-
-ALTER TABLE books ADD COLUMN original_price DECIMAL(10,2);
-UPDATE books SET original_price = price * 1.2 WHERE id > 0;
-
-UPDATE books SET original_price = price * 1.55 WHERE id = 1;  -- Đắc Nhân Tâm giảm 55%
-UPDATE books SET original_price = price * 1.40 WHERE id = 2;  -- Lập Trình AI giảm 40%
-UPDATE books SET original_price = price * 1.30 WHERE id = 3;  -- Tuổi Trẻ giảm 30%
-UPDATE books SET original_price = price * 1.50 WHERE id = 4;  -- Tớ Là Bêtô giảm 50%
-UPDATE books SET original_price = price * 1.20 WHERE id = 5;  -- Sapiens giảm 20%
-UPDATE books SET original_price = price * 1.10 WHERE id = 6;  -- Hành Trình giảm 10%
 
 

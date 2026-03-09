@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../config/db');
 
 // Lấy danh sách sách có tìm kiếm và lọc
 exports.getAllBooks = (req, res) => {
