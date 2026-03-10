@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const addressController = require('../controllers/addressController');
 
-// Giả định bạn đã có middleware xác thực để lấy req.user.id
-const { authMiddleware } = require('../middleware/authMiddleware');
+// Đổi tên từ authMiddleware thành authenticateToken cho khớp với file gốc
+const { authenticateToken } = require('../middleware/authMiddleware');
 
+// Sử dụng đúng cái tên đã import
+router.use(authenticateToken);
 // Lấy theo userId truyền vào URL giống cart/:userId
 router.get('/:userId', addressController.getUserAddresses);
 router.post('/', addressController.addAddress);
