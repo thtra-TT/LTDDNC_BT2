@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -10,48 +8,88 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  StatusBar,
+  Platform,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
 
 const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
-// --- PHẦN THÊM MỚI 1: KHAI BÁO CÁC BƯỚC TRẠNG THÁI ---
+// ─── Palette ──────────────────────────────────────────────────────────────────
+const C = {
+  primary:     "#1565C0",
+  primaryMid:  "#1E88E5",
+  primarySoft: "#E3F2FD",
+  primaryTint: "#BBDEFB",
+  bg:          "#F0F6FF",
+  surface:     "#FFFFFF",
+  border:      "#DDEEFF",
+  text1:       "#0D1B3E",
+  text2:       "#4A5980",
+  text3:       "#9AA8C8",
+  sale:        "#E53935",
+  saleBg:      "#FFF1EE",
+  green:       "#00897B",
+  greenBg:     "#E0F2F1",
+  orange:      "#F57C00",
+  orangeBg:    "#FFF3E0",
+};
+
+// ─── Status steps ─────────────────────────────────────────────────────────────
 const ORDER_STATUS_STEPS = [
-  { key: 'pending', label: 'Đơn hàng mới', icon: '' },
-  { key: 'confirmed', label: 'Đã xác nhận', icon: '' },
-  { key: 'preparing', label: 'Đang chuẩn bị', icon: '' },
-  { key: 'delivery', label: 'Đang giao hàng', icon: '' },
-  { key: 'success', label: 'Giao thành công', icon: '' },
+  { key: "pending",   label: "Đơn hàng mới",    icon: "document-text-outline" },
+  { key: "confirmed", label: "Đã xác nhận",      icon: "checkmark-circle-outline" },
+  { key: "preparing", label: "Đang chuẩn bị",    icon: "construct-outline" },
+  { key: "delivery",  label: "Đang giao hàng",   icon: "bicycle-outline" },
+  { key: "success",   label: "Giao thành công",  icon: "bag-check-outline" },
 ];
 
+// ─── Section header ───────────────────────────────────────────────────────────
+function SectionHeader({ icon, title }: { icon: string; title: string }) {
+  return (
+    <View style={s.sectionHeader}>
+      <View style={s.sectionIconWrap}>
+        <Ionicons name={icon as any} size={16} color={C.primaryMid} />
+      </View>
+      <Text style={s.sectionTitle}>{title}</Text>
+    </View>
+  );
+}
+
+// ─── Info row ─────────────────────────────────────────────────────────────────
+function InfoRow({ label, value, icon }: { label: string; value: string; icon?: string }) {
+  return (
+    <View style={s.infoRow}>
+      <Text style={s.infoLabel}>{label}</Text>
+      <Text style={s.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function OrderDetail() {
-  const route = useRoute<any>();
-  const navigation = useNavigation();
+  const route      = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { orderId } = route.params || {};
 
   const [orderData, setOrderData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]     = useState(true);
 
+  // ==========================
+  // API LOGIC (unchanged)
+  // ==========================
   const fetchDetail = async () => {
     if (!orderId) return;
     try {
       const token = await AsyncStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/api/orders/order-detail/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+      const res   = await fetch(`${BASE_URL}/api/orders/order-detail/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
-
       const data = await res.json();
-
-      if (data && data.items) {
-        setOrderData(data);
-      } else {
-        setOrderData(null);
-      }
+      setOrderData(data?.items ? data : null);
     } catch (error) {
       console.error("Lỗi lấy chi tiết:", error);
       Alert.alert("Lỗi", "Không thể tải thông tin đơn hàng");
@@ -60,17 +98,50 @@ export default function OrderDetail() {
     }
   };
 
-  useEffect(() => {
-    fetchDetail();
-  }, [orderId]);
+  useEffect(() => { fetchDetail(); }, [orderId]);
 
-  // --- PHẦN THÊM MỚI 2: HÀM RENDER THANH TRẠNG THÁI ---
+  const checkCanCancel = (createdAt: string) => {
+    const diff = (Date.now() - new Date(createdAt).getTime()) / 60000;
+    return diff <= 30;
+  };
+
+  const handleCancelOrder = async () => {
+    Alert.alert("Xác nhận huỷ đơn", "Bạn có chắc chắn muốn huỷ đơn hàng này?", [
+      { text: "Không", style: "cancel" },
+      {
+        text: "Huỷ đơn", style: "destructive",
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem("token");
+            const res   = await fetch(`${BASE_URL}/api/orders/cancel-order/${orderId}`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            const result = await res.json();
+            if (res.ok) {
+              Alert.alert("Thành công", "Đơn hàng của bạn đã được huỷ.");
+              fetchDetail();
+            } else {
+              Alert.alert("Lỗi", result.error || "Không thể huỷ đơn hàng");
+            }
+          } catch {
+            Alert.alert("Lỗi", "Kết nối server thất bại");
+          }
+        },
+      },
+    ]);
+  };
+
+  // ─── Status stepper ──────────────────────────────────────────────────────
   const renderStatusStepper = () => {
-    // Nếu bị huỷ thì hiện thông báo riêng
-    if (orderData.status === 'cancelled') {
+    if (orderData.status === "cancelled") {
       return (
-        <View style={styles.cancelledBox}>
-          <Text style={styles.cancelledText}>🚫 Đơn hàng này đã bị huỷ</Text>
+        <View style={s.cancelledBox}>
+          <View style={s.cancelledIconWrap}>
+            <Ionicons name="close-circle-outline" size={32} color={C.sale} />
+          </View>
+          <Text style={s.cancelledTitle}>Đơn hàng đã bị huỷ</Text>
+          <Text style={s.cancelledSub}>Đơn hàng này đã được huỷ thành công.</Text>
         </View>
       );
     }
@@ -78,21 +149,53 @@ export default function OrderDetail() {
     const currentIndex = ORDER_STATUS_STEPS.findIndex(s => s.key === orderData.status);
 
     return (
-      <View style={styles.stepperContainer}>
+      <View style={s.stepper}>
         {ORDER_STATUS_STEPS.map((step, index) => {
-          const isCompleted = index <= currentIndex;
-          const isLast = index === ORDER_STATUS_STEPS.length - 1;
+          const done    = index < currentIndex;
+          const active  = index === currentIndex;
+          const isLast  = index === ORDER_STATUS_STEPS.length - 1;
 
           return (
-            <View key={step.key} style={styles.stepItem}>
-              <View style={styles.stepLeft}>
-                <View style={[styles.stepDot, isCompleted && styles.stepDotActive]} />
-                {!isLast && <View style={[styles.stepLine, isCompleted && styles.stepLineActive]} />}
+            <View key={step.key} style={s.stepRow}>
+              {/* Left column: dot + line */}
+              <View style={s.stepLeft}>
+                <View style={[
+                  s.stepDot,
+                  done   && s.stepDotDone,
+                  active && s.stepDotActive,
+                ]}>
+                  {done ? (
+                    <Ionicons name="checkmark" size={10} color="#FFF" />
+                  ) : active ? (
+                    <View style={s.stepDotInner} />
+                  ) : null}
+                </View>
+                {!isLast && (
+                  <View style={[s.stepLine, (done || active) && s.stepLineDone]} />
+                )}
               </View>
-              <View style={styles.stepRight}>
-                <Text style={[styles.stepLabel, isCompleted && styles.stepLabelActive]}>
-                  {step.icon} {step.label}
-                </Text>
+
+              {/* Right column: label */}
+              <View style={s.stepRight}>
+                <View style={[s.stepLabelWrap, active && s.stepLabelWrapActive]}>
+                  <Ionicons
+                    name={step.icon as any}
+                    size={15}
+                    color={active ? C.primaryMid : done ? C.green : C.text3}
+                  />
+                  <Text style={[
+                    s.stepLabel,
+                    done   && s.stepLabelDone,
+                    active && s.stepLabelActive,
+                  ]}>
+                    {step.label}
+                  </Text>
+                  {active && (
+                    <View style={s.stepActiveBadge}>
+                      <Text style={s.stepActiveBadgeTxt}>Hiện tại</Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           );
@@ -101,190 +204,326 @@ export default function OrderDetail() {
     );
   };
 
-  const checkCanCancel = (createdAt: string) => {
-    const orderTime = new Date(createdAt).getTime();
-    const now = new Date().getTime();
-    const diffInMinutes = (now - orderTime) / (1000 * 60);
-    return diffInMinutes <= 30;
-  };
+  // ─── Loading / error ──────────────────────────────────────────────────────
+  if (loading) return (
+    <View style={[s.container, { justifyContent: "center", alignItems: "center" }]}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryMid} />
+      <ActivityIndicator size="large" color={C.primaryMid} />
+      <Text style={{ color: C.text3, marginTop: 10 }}>Đang tải đơn hàng...</Text>
+    </View>
+  );
 
-  const handleCancelOrder = async () => {
-    Alert.alert("Xác nhận", "Bạn có chắc chắn muốn huỷ đơn hàng này?", [
-      { text: "Không", style: "cancel" },
-      {
-        text: "Huỷ đơn",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const token = await AsyncStorage.getItem("token");
-            const res = await fetch(`${BASE_URL}/api/orders/cancel-order/${orderId}`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            const result = await res.json();
-
-            if (res.ok) {
-              Alert.alert("Thành công", "Đơn hàng của bạn đã được huỷ.");
-              fetchDetail();
-            } else {
-              Alert.alert("Lỗi", result.error || "Không thể huỷ đơn hàng");
-            }
-          } catch (e) {
-            Alert.alert("Lỗi", "Kết nối server thất bại");
-          }
-        }
-      }
-    ]);
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+  if (!orderData) return (
+    <SafeAreaView style={s.container}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Ionicons name="receipt-outline" size={56} color={C.primaryTint} />
+        <Text style={{ color: C.text2, marginTop: 12, fontSize: 16 }}>
+          Không tìm thấy dữ liệu đơn hàng.
+        </Text>
       </View>
-    );
-  }
+    </SafeAreaView>
+  );
 
-  if (!orderData) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.noData}>Không tìm thấy dữ liệu đơn hàng.</Text>
-      </SafeAreaView>
-    );
-  }
+  const canCancel = orderData.status === "pending" && checkCanCancel(orderData.created_at);
+  const pastCancel = orderData.status === "pending" && !checkCanCancel(orderData.created_at);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backArea}>
-          <Text style={styles.backBtn}>← Quay lại</Text>
+    <SafeAreaView style={s.container}>
+      <StatusBar barStyle="light-content" backgroundColor={C.primaryMid} />
+
+      {/* ── HEADER ───────────────────────────────────────────────── */}
+      <View style={s.header}>
+        <View style={s.headerBlob} />
+        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>Chi tiết đơn hàng #{orderId}</Text>
+        <View style={s.headerCenter}>
+          <Text style={s.headerTitle}>Chi tiết đơn hàng</Text>
+          <Text style={s.headerSub}>#{orderId}</Text>
+        </View>
+        <View style={{ width: 38 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-
-        {/* --- PHẦN THÊM MỚI 3: HIỂN THỊ THANH TRẠNG THÁI --- */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Theo dõi đơn hàng</Text>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── TRACKING CARD ────────────────────────────────────── */}
+        <View style={s.card}>
+          <SectionHeader icon="navigate-outline" title="Theo dõi đơn hàng" />
           {renderStatusStepper()}
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Thông tin giao hàng</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Người nhận:</Text>
-            <Text style={styles.value}>{orderData.customer_name || "Chưa cập nhật"}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Số điện thoại:</Text>
-            <Text style={styles.value}>{orderData.phone || "N/A"}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Địa chỉ:</Text>
-            <Text style={styles.value}>{orderData.address}</Text>
+        {/* ── DELIVERY INFO ────────────────────────────────────── */}
+        <View style={s.card}>
+          <SectionHeader icon="location-outline" title="Thông tin giao hàng" />
+          <View style={s.infoGrid}>
+            <InfoRow label="Người nhận" value={orderData.customer_name || "Chưa cập nhật"} />
+            <InfoRow label="Số điện thoại" value={orderData.phone || "N/A"} />
+            <InfoRow label="Địa chỉ" value={orderData.address} />
           </View>
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Sản phẩm đã đặt</Text>
+        {/* ── PRODUCTS ─────────────────────────────────────────── */}
+        <View style={s.card}>
+          <SectionHeader icon="books-outline" title={`Sản phẩm đã đặt (${orderData.items.length})`} />
           {orderData.items.map((item: any, index: number) => (
-            <View key={index} style={styles.productRow}>
-              <View style={styles.productInfo}>
-                <Text style={styles.productName} numberOfLines={2}>
+            <View
+              key={index}
+              style={[s.productRow, index === orderData.items.length - 1 && { borderBottomWidth: 0 }]}
+            >
+              <View style={s.productNumWrap}>
+                <Text style={s.productNum}>{index + 1}</Text>
+              </View>
+              <View style={s.productInfo}>
+                <Text style={s.productName} numberOfLines={2}>
                   {item.title || `Sách mã #${item.book_id}`}
                 </Text>
-                <Text style={styles.productQty}>Số lượng: x{item.quantity}</Text>
+                <View style={s.productMeta}>
+                  <Text style={s.productQty}>x{item.quantity}</Text>
+                  <Text style={s.productUnit}>
+                    {Number(item.price).toLocaleString("vi-VN")}đ / cuốn
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.productPrice}>
-                {(Number(item.price) * item.quantity).toLocaleString()}đ
+              <Text style={s.productTotal}>
+                {(Number(item.price) * item.quantity).toLocaleString("vi-VN")}đ
               </Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tạm tính:</Text>
-            <Text style={styles.summaryValue}>{Number(orderData.total).toLocaleString()}đ</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Phí vận chuyển:</Text>
-            <Text style={styles.summaryValue}>0đ</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tổng thanh toán:</Text>
-            <Text style={styles.totalValue}>{Number(orderData.total).toLocaleString()}đ</Text>
-          </View>
-          <View style={styles.statusRow}>
-             <Text style={styles.statusBadge}>Trạng thái: {orderData.status?.toUpperCase()}</Text>
+        {/* ── SUMMARY ──────────────────────────────────────────── */}
+        <View style={s.card}>
+          <SectionHeader icon="calculator-outline" title="Tóm tắt thanh toán" />
+          <View style={s.summaryBody}>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>Tạm tính</Text>
+              <Text style={s.summaryVal}>{Number(orderData.total).toLocaleString("vi-VN")}đ</Text>
+            </View>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>Phí vận chuyển</Text>
+              <Text style={[s.summaryVal, { color: C.green }]}>Miễn phí</Text>
+            </View>
+            <View style={s.summaryDivider} />
+            <View style={s.summaryRow}>
+              <Text style={s.summaryTotalLabel}>Tổng thanh toán</Text>
+              <Text style={s.summaryTotalVal}>{Number(orderData.total).toLocaleString("vi-VN")}đ</Text>
+            </View>
           </View>
         </View>
 
-        {orderData.status === 'pending' && checkCanCancel(orderData.created_at) && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={handleCancelOrder}
-          >
-            <Text style={styles.cancelButtonText}>Huỷ đơn hàng</Text>
+        {/* ── CANCEL ───────────────────────────────────────────── */}
+        {canCancel && (
+          <TouchableOpacity style={s.cancelBtn} onPress={handleCancelOrder} activeOpacity={0.85}>
+            <Ionicons name="close-circle-outline" size={18} color={C.sale} />
+            <Text style={s.cancelBtnTxt}>Huỷ đơn hàng</Text>
           </TouchableOpacity>
         )}
 
-        {orderData.status === 'pending' && !checkCanCancel(orderData.created_at) && (
-          <Text style={styles.cancelNote}>* Đã quá thời gian huỷ đơn (30 phút)</Text>
+        {pastCancel && (
+          <View style={s.cancelNoteBox}>
+            <Ionicons name="information-circle-outline" size={16} color={C.text3} />
+            <Text style={s.cancelNoteTxt}>Đã quá 30 phút — không thể huỷ đơn hàng</Text>
+          </View>
         )}
 
+        {/* ── REVIEW ───────────────────────────────────────────── */}
+        {orderData.status === "success" && (
+          <View style={s.card}>
+            <SectionHeader icon="star-outline" title="Đánh giá sản phẩm" />
+            <View style={s.reviewList}>
+              {orderData.items.map((item: any, index: number) => (
+                <TouchableOpacity
+                  key={index}
+                  style={s.reviewBtn}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    navigation.navigate("ReviewScreen", {
+                      book_id: item.book_id,
+                      order_id: orderId,
+                    })
+                  }
+                >
+                  <Text style={s.reviewBtnTxt} numberOfLines={1}>
+                    ✍️  {item.title}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color={C.primaryMid} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F5F5F5" },
-  header: { flexDirection: "row", alignItems: "center", padding: 16, backgroundColor: "#fff", elevation: 2 },
-  backArea: { paddingRight: 10 },
-  backBtn: { fontSize: 16, color: "#6C63FF", fontWeight: "bold" },
-  title: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  container: { padding: 12 },
-  sectionCard: { backgroundColor: "#fff", padding: 15, borderRadius: 10, marginBottom: 12, elevation: 1 },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#6C63FF", marginBottom: 10, borderBottomWidth: 1, borderBottomColor: "#F0F0F0", paddingBottom: 5 },
-  infoRow: { flexDirection: "row", marginBottom: 6 },
-  label: { flex: 1, color: "#666", fontSize: 14 },
-  value: { flex: 2, color: "#333", fontWeight: "500", fontSize: 14 },
-  productRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: "#eee" },
-  productInfo: { flex: 2 },
-  productName: { fontSize: 15, fontWeight: "500", color: "#333" },
-  productQty: { color: "#888", marginTop: 4, fontSize: 13 },
-  productPrice: { flex: 1, textAlign: "right", fontWeight: "bold", color: "#333" },
-  summaryCard: { backgroundColor: "#fff", padding: 15, borderRadius: 10, marginBottom: 20 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  summaryLabel: { color: "#666" },
-  summaryValue: { color: "#333" },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#eee" },
-  totalLabel: { fontSize: 16, fontWeight: "bold" },
-  totalValue: { fontSize: 18, fontWeight: "bold", color: "#e74c3c" },
-  statusRow: { marginTop: 15, alignItems: 'center' },
-  statusBadge: { color: '#f39c12', fontWeight: 'bold', backgroundColor: '#fef5e7', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
-  cancelButton: { backgroundColor: "#fff", padding: 15, borderRadius: 10, borderWidth: 1, borderColor: "#e74c3c", alignItems: "center", marginBottom: 20 },
-  cancelButtonText: { color: "#e74c3c", fontWeight: "bold", fontSize: 16 },
-  cancelNote: { textAlign: 'center', color: '#888', fontStyle: 'italic', marginBottom: 20 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  noData: { textAlign: 'center', marginTop: 50, fontSize: 16, color: "#888" },
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
 
-  // --- PHẦN THÊM MỚI 4: STYLES CHO STEPPER ---
-  stepperContainer: { marginTop: 10, paddingLeft: 5 },
-  stepItem: { flexDirection: 'row', minHeight: 50 },
-  stepLeft: { alignItems: 'center', marginRight: 15 },
-  stepDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#E0E0E0' },
-  stepDotActive: { backgroundColor: '#27ae60' },
-  stepLine: { width: 2, flex: 1, backgroundColor: '#E0E0E0', marginVertical: 2 },
-  stepLineActive: { backgroundColor: '#27ae60' },
-  stepRight: { flex: 1, paddingTop: -2 },
-  stepLabel: { fontSize: 14, color: '#999' },
-  stepLabelActive: { color: '#27ae60', fontWeight: 'bold' },
-  cancelledBox: { backgroundColor: '#FFF5F5', padding: 10, borderRadius: 8, alignItems: 'center' },
-  cancelledText: { color: '#e74c3c', fontWeight: 'bold' }
+  // ── Header
+  header: {
+    backgroundColor: C.primaryMid,
+    flexDirection: "row", alignItems: "center",
+    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 10 : 10,
+    paddingBottom: 16, paddingHorizontal: 14,
+    borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  headerBlob: {
+    position: "absolute", width: 160, height: 160, borderRadius: 80,
+    backgroundColor: "rgba(255,255,255,0.08)", top: -50, right: -30,
+  },
+  backBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    justifyContent: "center", alignItems: "center",
+  },
+  headerCenter: { flex: 1, alignItems: "center" },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: "#FFF" },
+  headerSub:   { fontSize: 12, color: "rgba(255,255,255,0.70)", marginTop: 2 },
+
+  scroll: { padding: 16, gap: 12 },
+
+  // ── Card
+  card: {
+    backgroundColor: C.surface, borderRadius: 20, padding: 18,
+    elevation: 2,
+    shadowColor: C.primaryMid, shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 8,
+    gap: 14,
+  },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  sectionIconWrap: {
+    width: 30, height: 30, borderRadius: 10,
+    backgroundColor: C.primarySoft,
+    justifyContent: "center", alignItems: "center",
+  },
+  sectionTitle: { fontSize: 15, fontWeight: "800", color: C.text1 },
+
+  // ── Info
+  infoGrid: { gap: 10 },
+  infoRow:  { flexDirection: "row", alignItems: "flex-start" },
+  infoLabel: { width: 110, fontSize: 13, color: C.text3, fontWeight: "500" },
+  infoValue: { flex: 1, fontSize: 13, color: C.text1, fontWeight: "600" },
+
+  // ── Stepper
+  stepper: { gap: 0, paddingLeft: 2 },
+  stepRow: { flexDirection: "row", minHeight: 52 },
+  stepLeft: { alignItems: "center", width: 28, marginRight: 12 },
+  stepDot: {
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: "#E8EFF8",
+    borderWidth: 2, borderColor: C.border,
+    justifyContent: "center", alignItems: "center",
+  },
+  stepDotDone: {
+    backgroundColor: C.green, borderColor: C.green,
+  },
+  stepDotActive: {
+    backgroundColor: C.primaryMid, borderColor: C.primaryMid,
+  },
+  stepDotInner: {
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: "#FFF",
+  },
+  stepLine: {
+    flex: 1, width: 2, backgroundColor: C.border,
+    marginVertical: 3, borderRadius: 2,
+  },
+  stepLineDone: { backgroundColor: C.green },
+  stepRight: { flex: 1, paddingBottom: 12, justifyContent: "flex-start" },
+  stepLabelWrap: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingVertical: 2,
+  },
+  stepLabelWrapActive: {
+    backgroundColor: C.primarySoft,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: 12, marginRight: 8,
+  },
+  stepLabel:       { fontSize: 14, color: C.text3 },
+  stepLabelDone:   { color: C.green, fontWeight: "600" },
+  stepLabelActive: { color: C.primaryMid, fontWeight: "700" },
+  stepActiveBadge: {
+    backgroundColor: C.primaryMid, borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  stepActiveBadgeTxt: { color: "#FFF", fontSize: 10, fontWeight: "700" },
+
+  // cancelled
+  cancelledBox: {
+    alignItems: "center", paddingVertical: 16,
+    backgroundColor: C.saleBg, borderRadius: 16, gap: 6,
+  },
+  cancelledIconWrap: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: "#FFEBEE",
+    justifyContent: "center", alignItems: "center",
+  },
+  cancelledTitle: { fontSize: 16, fontWeight: "800", color: C.sale },
+  cancelledSub:   { fontSize: 13, color: "#E57373" },
+
+  // ── Products
+  productRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    paddingVertical: 12,
+    borderBottomWidth: 1, borderColor: C.border,
+  },
+  productNumWrap: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: C.primarySoft,
+    justifyContent: "center", alignItems: "center",
+  },
+  productNum:  { fontSize: 12, fontWeight: "800", color: C.primaryMid },
+  productInfo: { flex: 1 },
+  productName: { fontSize: 14, fontWeight: "600", color: C.text1, marginBottom: 4 },
+  productMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
+  productQty: {
+    backgroundColor: C.primarySoft, borderRadius: 8,
+    paddingHorizontal: 8, paddingVertical: 2,
+    fontSize: 12, fontWeight: "700", color: C.primaryMid,
+  },
+  productUnit: { fontSize: 12, color: C.text3 },
+  productTotal: { fontSize: 14, fontWeight: "800", color: C.text1 },
+
+  // ── Summary
+  summaryBody: { gap: 10 },
+  summaryRow:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  summaryLabel: { fontSize: 14, color: C.text2 },
+  summaryVal:   { fontSize: 14, color: C.text1, fontWeight: "600" },
+  summaryDivider: { height: 1, backgroundColor: C.border, marginVertical: 4 },
+  summaryTotalLabel: { fontSize: 16, fontWeight: "800", color: C.text1 },
+  summaryTotalVal:   { fontSize: 20, fontWeight: "900", color: C.sale },
+
+  // ── Cancel
+  cancelBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    backgroundColor: C.surface, borderRadius: 16,
+    borderWidth: 1.5, borderColor: C.sale,
+    paddingVertical: 15,
+    elevation: 1,
+    shadowColor: C.sale, shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10, shadowRadius: 6,
+  },
+  cancelBtnTxt: { color: C.sale, fontWeight: "800", fontSize: 15 },
+  cancelNoteBox: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    paddingVertical: 10,
+  },
+  cancelNoteTxt: { fontSize: 13, color: C.text3, fontStyle: "italic" },
+
+  // ── Review
+  reviewList: { gap: 10 },
+  reviewBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: C.primarySoft, borderRadius: 14,
+    paddingHorizontal: 14, paddingVertical: 12,
+    borderWidth: 1, borderColor: C.primaryTint,
+  },
+  reviewBtnTxt: { flex: 1, fontSize: 14, color: C.primaryMid, fontWeight: "600" },
 });

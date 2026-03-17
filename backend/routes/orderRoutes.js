@@ -10,4 +10,5 @@ router.post('/create', orderController.createOrder);
 router.get('/user/:userId', orderController.getOrders);
 router.get('/order-detail/:orderId', orderController.getOrderDetail);
 router.put('/cancel-order/:orderId', orderController.cancelOrder);
+router.post("/calc-total", orderController.calcTotal);
 module.exports = router;

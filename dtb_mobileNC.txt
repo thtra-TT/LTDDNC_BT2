@@ -1,5 +1,4 @@
 
-    
     -- 1. Tạo database (nếu chưa có)
 CREATE DATABASE IF NOT EXISTS auth_app;
 USE auth_app;
@@ -244,12 +243,12 @@ UPDATE books SET original_price = price * 1.10 WHERE id = 6;  -- Hành Trình gi
 -- Tạo dữ liệu bán hàng mẫu
 
 INSERT INTO orders (user_id, total, status) VALUES
-(1, 300000, 'completed'),
-(1, 450000, 'completed'),
-(1, 200000, 'completed'),
-(1, 150000, 'completed'),
-(1, 280000, 'completed'),
-(1, 500000, 'completed');
+(1, 300000, 'success'),
+(1, 450000, 'success'),
+(1, 200000, 'success'),
+(1, 150000, 'success'),
+(1, 280000, 'success'),
+(1, 500000, 'success');
 
 INSERT INTO order_items (order_id, book_id, quantity, price) VALUES
 -- Order 1
@@ -582,7 +581,79 @@ VALUES
  175000, 25,
  'https://product.hstatic.net/200000845405/product/ung-dung-ai-trong-cong-viec-bia-full_d7defa874ee04ab7bc683c9f81874be8_master.jpg',
  3, 4, 5);
+ 
+ 
+ CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    order_id INT NOT NULL,
+
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+ 
+ 
+ CREATE TABLE IF NOT EXISTS reward_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+    points INT DEFAULT 0,
+    reason VARCHAR(255),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE,
+    discount_percent INT,
+    discount_amount INT,
+    min_order_value INT,
+    max_discount INT,
+    expiry_date DATETIME,
+    usage_limit INT,
+    used_count INT DEFAULT 0
+);
+
+ 
+ ALTER TABLE users 
+ADD COLUMN reward_points INT DEFAULT 0;
+
+CREATE TABLE wishlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    book_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, book_id)
+);
+
+INSERT INTO coupons
+(code, discount_percent, min_order_value, max_discount, expiry_date)
+VALUES
+('SALE10', 10, 100000, 50000, '2026-12-31');
 
 
+CREATE TABLE point_transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    reward_points INT,
+    type VARCHAR(50),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE coupons
+ADD user_id INT AFTER discount_percent;
+ALTER TABLE coupons
+ADD CONSTRAINT fk_coupon_user
+FOREIGN KEY (user_id) REFERENCES users(id);
 
 

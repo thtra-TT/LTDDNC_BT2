@@ -1,5 +1,9 @@
+// services/recentlyViewed.ts
+// Lưu & đọc danh sách sách đã xem gần đây bằng SQLite (expo-sqlite v2 sync API)
+
 import db from "./database"; // dùng đúng file database.ts đã có
 
+// ─── Khởi tạo bảng (gọi 1 lần khi app start) ────────────────────────────────
 export function initRecentlyViewedTable() {
   db.execSync(`
     CREATE TABLE IF NOT EXISTS recently_viewed (

@@ -8,6 +8,10 @@ const upload = require("./middleware/upload");
 const cartRoutes = require('./routes/cartRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const reviewRoutes = require("./routes/reviewRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
+const couponRoutes = require("./routes/couponRoutes");
+const pointRoutes = require("./routes/pointRoutes");
 
 const app = express();
 
@@ -21,6 +25,10 @@ app.use("/api/categories", categoryRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/points", pointRoutes);
 app.use("/uploads", express.static("uploads"));
 app.post("/upload-avatar", upload.single("avatar"), (req, res) => {
   res.json({ filename: req.file.filename });
